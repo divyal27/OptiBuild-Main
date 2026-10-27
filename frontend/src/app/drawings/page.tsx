@@ -20,6 +20,7 @@ import {
   Calendar,
   ExternalLink,
 } from "lucide-react"
+import { motion } from "framer-motion"
 
 interface DrawingItem {
   id: string
@@ -152,9 +153,14 @@ export default function DrawingsPage() {
         delayRiskDays={0}
       />
 
-      <main className="p-4 md:p-6 space-y-6">
+      <main className="p-4 md:p-6 space-y-6 max-w-7xl">
         {/* Compliance Banner: Stored for human viewing only, never parsed */}
-        <div className="border border-border bg-card p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2 }}
+          className="border border-border bg-card p-4 rounded-[4px] shadow-sm"
+        >
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div>
               <div className="flex items-center gap-2">
@@ -169,23 +175,23 @@ export default function DrawingsPage() {
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
-              <span className="text-[11px] font-mono px-2.5 py-1 bg-primary/10 border border-primary/20 text-primary flex items-center gap-1.5">
+              <span className="text-[11px] font-mono px-2.5 py-1 bg-primary/10 border border-primary/20 text-primary flex items-center gap-1.5 rounded-[4px] font-semibold">
                 <Lock className="w-3 h-3" />
                 LOCKED RULE: Stored For Viewing Only • Never Parsed
               </span>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {error && (
-          <div className="p-3 bg-destructive/10 border border-destructive text-destructive font-mono text-xs flex items-center gap-2">
+          <div className="p-3 bg-destructive/10 border border-destructive text-destructive font-mono text-xs flex items-center gap-2 rounded-[4px]">
             <AlertTriangle className="w-4 h-4 shrink-0" />
             {error}
           </div>
         )}
 
         {successMsg && (
-          <div className="p-3 bg-status-success/10 border border-status-success text-status-success font-mono text-xs flex items-center gap-2">
+          <div className="p-3 bg-status-success/10 border border-status-success text-status-success font-mono text-xs flex items-center gap-2 rounded-[4px]">
             <ShieldCheck className="w-4 h-4 shrink-0" />
             {successMsg}
           </div>
@@ -193,7 +199,12 @@ export default function DrawingsPage() {
 
         {/* Upload Form for Architect & Admin */}
         {canUpload && (
-          <div className="border border-border bg-card p-4">
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2, delay: 0.05 }}
+            className="border border-border bg-card p-5 rounded-[4px] shadow-sm"
+          >
             <h3 className="font-heading font-semibold text-xs text-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
               <Upload className="w-3.5 h-3.5 text-primary" />
               Attach Architectural / Engineering Drawing
@@ -201,7 +212,7 @@ export default function DrawingsPage() {
 
             <form onSubmit={handleUpload} className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
               <div>
-                <label className="text-[10px] font-mono text-muted-foreground uppercase block mb-1">
+                <label className="text-[10px] font-mono text-muted-foreground uppercase block mb-1 font-semibold">
                   Drawing Sheet Title
                 </label>
                 <input
@@ -210,18 +221,18 @@ export default function DrawingsPage() {
                   placeholder="e.g. Tower 1 G+14 Structural Plan"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full text-xs font-mono bg-background border border-border p-2 text-foreground"
+                  className="w-full text-xs font-mono bg-background border border-border p-2 text-foreground rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] font-mono text-muted-foreground uppercase block mb-1">
+                <label className="text-[10px] font-mono text-muted-foreground uppercase block mb-1 font-semibold">
                   Discipline / Type
                 </label>
                 <select
                   value={drawingType}
                   onChange={(e) => setDrawingType(e.target.value)}
-                  className="w-full text-xs font-mono bg-background border border-border p-2 text-foreground"
+                  className="w-full text-xs font-mono bg-background border border-border p-2 text-foreground rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
                 >
                   {DRAWING_TYPES.map((t) => (
                     <option key={t.value} value={t.value}>
@@ -232,7 +243,7 @@ export default function DrawingsPage() {
               </div>
 
               <div>
-                <label className="text-[10px] font-mono text-muted-foreground uppercase block mb-1">
+                <label className="text-[10px] font-mono text-muted-foreground uppercase block mb-1 font-semibold">
                   File (.pdf, .dwg, .dxf, .png, .jpg)
                 </label>
                 <input
@@ -241,15 +252,16 @@ export default function DrawingsPage() {
                   required
                   accept=".pdf,.dwg,.dxf,.png,.jpg,.jpeg"
                   onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                  className="w-full text-xs font-mono bg-background border border-border p-1.5 text-foreground file:mr-2 file:py-1 file:px-2 file:border-0 file:text-[11px] file:font-mono file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+                  className="w-full text-xs font-mono bg-background border border-border p-1.5 text-foreground rounded-[4px] file:mr-2 file:py-1 file:px-2 file:border-0 file:rounded-[2px] file:text-[11px] file:font-mono file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
 
               <div>
-                <button
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
                   type="submit"
                   disabled={isUploading || !title.trim() || !selectedFile}
-                  className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground font-mono text-xs font-medium hover:bg-primary/90 transition-colors border border-primary disabled:opacity-50"
+                  className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground font-mono text-xs font-medium hover:bg-primary/90 transition-colors border border-primary rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
                 >
                   {isUploading ? (
                     <>
@@ -262,10 +274,10 @@ export default function DrawingsPage() {
                       Attach Drawing
                     </>
                   )}
-                </button>
+                </motion.button>
               </div>
             </form>
-          </div>
+          </motion.div>
         )}
 
         {/* Drawings Vault Grid */}
@@ -288,7 +300,12 @@ export default function DrawingsPage() {
             description="No architectural, structural, or MEP drawings have been attached to this project yet. Architects can attach drawing sheets above for site reference."
           />
         ) : (
-          <div className="border border-border bg-card">
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2, delay: 0.1 }}
+            className="border border-border bg-card rounded-[4px] shadow-sm overflow-hidden"
+          >
             <div className="p-3 border-b border-border bg-muted/30 flex items-center justify-between">
               <span className="font-heading font-semibold text-xs text-foreground uppercase tracking-wider">
                 ATTACHED DRAWINGS ({drawings.length})
@@ -310,14 +327,20 @@ export default function DrawingsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {drawings.map((drawing) => (
-                    <tr key={drawing.id} className="hover:bg-muted/30 transition-colors">
+                  {drawings.map((drawing, idx) => (
+                    <motion.tr
+                      key={drawing.id}
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.15, delay: idx * 0.03 }}
+                      className="hover:bg-muted/30 transition-colors"
+                    >
                       <td className="p-3 font-bold text-foreground flex items-center gap-2">
                         <FileCode className="w-4 h-4 text-primary shrink-0" />
                         <span>{drawing.title}</span>
                       </td>
                       <td className="p-3">
-                        <span className="text-[10px] font-mono px-2 py-0.5 bg-secondary border border-border text-foreground font-medium">
+                        <span className="text-[10px] font-mono px-2 py-0.5 bg-secondary border border-border text-foreground font-medium rounded-[4px]">
                           {drawing.drawing_type}
                         </span>
                       </td>
@@ -336,19 +359,19 @@ export default function DrawingsPage() {
                           href={getApiUrl(drawing.file_url)}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 px-2.5 py-1 bg-secondary hover:bg-secondary/80 border border-border text-foreground text-xs font-mono transition-colors"
+                          className="inline-flex items-center gap-1.5 px-3 py-1 bg-secondary hover:bg-primary hover:text-primary-foreground border border-border text-foreground text-xs font-mono rounded-[4px] transition-all shadow-sm active:scale-[0.98]"
                         >
-                          <Eye className="w-3 h-3 text-primary" />
+                          <Eye className="w-3.5 h-3.5 text-primary" />
                           <span>View Sheet</span>
-                          <ExternalLink className="w-2.5 h-2.5 opacity-60" />
+                          <ExternalLink className="w-3 h-3 opacity-60" />
                         </a>
                       </td>
-                    </tr>
+                    </motion.tr>
                   ))}
                 </tbody>
               </table>
             </div>
-          </div>
+          </motion.div>
         )}
       </main>
     </div>
