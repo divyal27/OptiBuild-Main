@@ -24,6 +24,8 @@ import {
   Loader2,
   Sparkles,
 } from "lucide-react"
+import { motion } from "framer-motion"
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber"
 
 interface MaterialItem {
   entry_id: string
@@ -265,9 +267,14 @@ export default function MaterialsPage() {
         delayRiskDays={activeProject?.delay_days || 0}
       />
 
-      <main className="p-4 md:p-6 space-y-6">
+      <main className="p-4 md:p-6 space-y-6 max-w-7xl">
         {/* Top Summary Banner */}
-        <div className="border border-border bg-card p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2 }}
+          className="border border-border bg-card p-4 rounded-[4px] flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm"
+        >
           <div>
             <h2 className="font-heading font-semibold text-base text-foreground flex items-center gap-2">
               <Receipt className="w-4 h-4 text-primary" />
@@ -280,20 +287,21 @@ export default function MaterialsPage() {
 
           <div className="flex items-center gap-3">
             {canLogMaterial && (
-              <button
+              <motion.button
+                whileTap={{ scale: 0.98 }}
                 type="button"
                 onClick={() => setShowAddForm(!showAddForm)}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground font-mono text-xs font-medium hover:bg-primary/90 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground font-mono text-xs font-medium hover:bg-primary/90 transition-colors rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>{showAddForm ? "CLOSE FORM" : "LOG NEW MATERIAL"}</span>
-              </button>
+              </motion.button>
             )}
           </div>
-        </div>
+        </motion.div>
 
         {error && (
-          <div className="flex items-center gap-2 p-3 border border-destructive/50 bg-destructive/10 text-destructive text-xs font-mono">
+          <div className="flex items-center gap-2 p-3 border border-destructive/50 bg-destructive/10 text-destructive text-xs font-mono rounded-[4px]">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>
@@ -301,9 +309,12 @@ export default function MaterialsPage() {
 
         {/* Add Material Delivery Form (Store Keeper) */}
         {showAddForm && canLogMaterial && (
-          <form
+          <motion.form
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
             onSubmit={handleCreateMaterialLog}
-            className="border border-primary/50 bg-card p-5 space-y-4"
+            className="border border-primary/50 bg-card p-5 space-y-4 rounded-[4px] shadow-sm"
           >
             <div className="text-xs font-mono uppercase text-primary font-semibold border-b border-border pb-2">
               Record Site Material Receipt & Delivery Challan
@@ -311,22 +322,22 @@ export default function MaterialsPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs font-mono">
               <div>
-                <label className="block text-muted-foreground mb-1">Receipt Date</label>
+                <label className="block text-muted-foreground mb-1 font-semibold">Receipt Date</label>
                 <input
                   type="date"
                   value={formDate}
                   onChange={(e) => setFormDate(e.target.value)}
-                  className="w-full px-3 py-1.5 bg-background border border-border text-foreground"
+                  className="w-full px-3 py-1.5 bg-background border border-border text-foreground rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-muted-foreground mb-1">Material Category</label>
+                <label className="block text-muted-foreground mb-1 font-semibold">Material Category</label>
                 <select
                   value={formCategory}
                   onChange={(e) => setFormCategory(e.target.value)}
-                  className="w-full px-3 py-1.5 bg-background border border-border text-foreground"
+                  className="w-full px-3 py-1.5 bg-background border border-border text-foreground rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary"
                 >
                   <option value="Cement">Cement (Bags)</option>
                   <option value="Steel / Rebar">Steel / Rebar (MT)</option>
@@ -340,80 +351,80 @@ export default function MaterialsPage() {
               </div>
 
               <div>
-                <label className="block text-muted-foreground mb-1">Quantity</label>
+                <label className="block text-muted-foreground mb-1 font-semibold">Quantity</label>
                 <input
                   type="number"
                   step="any"
                   value={formQty}
                   onChange={(e) => setFormQty(parseFloat(e.target.value) || 0)}
-                  className="w-full px-3 py-1.5 bg-background border border-border text-foreground"
+                  className="w-full px-3 py-1.5 bg-background border border-border text-foreground rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-muted-foreground mb-1">Unit of Measure</label>
+                <label className="block text-muted-foreground mb-1 font-semibold">Unit of Measure</label>
                 <input
                   type="text"
                   value={formUnit}
                   onChange={(e) => setFormUnit(e.target.value)}
                   placeholder="Bags, MT, Cu.m, Nos"
-                  className="w-full px-3 py-1.5 bg-background border border-border text-foreground"
+                  className="w-full px-3 py-1.5 bg-background border border-border text-foreground rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-muted-foreground mb-1">Unit Rate (₹)</label>
+                <label className="block text-muted-foreground mb-1 font-semibold">Unit Rate (₹)</label>
                 <input
                   type="number"
                   step="any"
                   value={formRate}
                   onChange={(e) => setFormRate(parseFloat(e.target.value) || 0)}
-                  className="w-full px-3 py-1.5 bg-background border border-border text-foreground"
+                  className="w-full px-3 py-1.5 bg-background border border-border text-foreground rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-muted-foreground mb-1">Vendor / Supplier</label>
+                <label className="block text-muted-foreground mb-1 font-semibold">Vendor / Supplier</label>
                 <input
                   type="text"
                   value={formVendor}
                   onChange={(e) => setFormVendor(e.target.value)}
                   placeholder="e.g. UltraTech Cement Depot"
-                  className="w-full px-3 py-1.5 bg-background border border-border text-foreground"
+                  className="w-full px-3 py-1.5 bg-background border border-border text-foreground rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-muted-foreground mb-1">Invoice / Challan No</label>
+                <label className="block text-muted-foreground mb-1 font-semibold">Invoice / Challan No</label>
                 <input
                   type="text"
                   value={formInvoice}
                   onChange={(e) => setFormInvoice(e.target.value)}
                   placeholder="e.g. INV-2026-908"
-                  className="w-full px-3 py-1.5 bg-background border border-border text-foreground"
+                  className="w-full px-3 py-1.5 bg-background border border-border text-foreground rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-muted-foreground mb-1">Linked WBS Code</label>
+                <label className="block text-muted-foreground mb-1 font-semibold">Linked WBS Code</label>
                 <input
                   type="text"
                   value={formWbs}
                   onChange={(e) => setFormWbs(e.target.value)}
                   placeholder="e.g. WBS-1.2"
-                  className="w-full px-3 py-1.5 bg-background border border-border text-foreground"
+                  className="w-full px-3 py-1.5 bg-background border border-border text-foreground rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-mono text-muted-foreground mb-1">
+                <label className="block text-xs font-mono text-muted-foreground mb-1 font-semibold">
                   Item Description / Grade Specification
                 </label>
                 <input
@@ -421,18 +432,18 @@ export default function MaterialsPage() {
                   value={formDesc}
                   onChange={(e) => setFormDesc(e.target.value)}
                   placeholder="e.g. M25 Grade Ready Mix Concrete for Podium Casting"
-                  className="w-full px-3 py-1.5 text-xs font-mono bg-background border border-border text-foreground"
+                  className="w-full px-3 py-1.5 text-xs font-mono bg-background border border-border text-foreground rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
 
               {/* Bill Attachment Dropzone */}
               <div>
-                <label className="block text-xs font-mono text-muted-foreground mb-1">
+                <label className="block text-xs font-mono text-muted-foreground mb-1 font-semibold">
                   Attach Invoice / Weighbridge Slip (Unparsed Evidence)
                 </label>
                 <div
                   {...getBillRootProps()}
-                  className="p-3 border border-dashed border-border bg-muted/20 text-center cursor-pointer hover:bg-muted/50 transition-colors"
+                  className="p-3 border border-dashed border-border bg-muted/20 text-center cursor-pointer hover:bg-muted/50 transition-colors rounded-[4px]"
                 >
                   <input {...getBillInputProps()} />
                   <span className="text-[11px] font-mono text-muted-foreground flex items-center justify-center gap-1.5">
@@ -447,33 +458,42 @@ export default function MaterialsPage() {
               <div className="text-xs font-mono text-muted-foreground">
                 Calculated Line Cost: <span className="font-bold text-foreground">{formatINR(formQty * formRate)}</span>
               </div>
-              <button
+              <motion.button
+                whileTap={{ scale: 0.98 }}
                 type="submit"
                 disabled={isSubmitting}
-                className="px-4 py-2 bg-primary text-primary-foreground font-mono text-xs font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
+                className="px-4 py-2 bg-primary text-primary-foreground font-mono text-xs font-medium hover:bg-primary/90 transition-colors rounded-[4px] disabled:opacity-50"
               >
                 {isSubmitting ? "SAVING DELIVERY LOG..." : "CONFIRM & LOG MATERIAL"}
-              </button>
+              </motion.button>
             </div>
-          </form>
+          </motion.form>
         )}
 
         {/* Spend KPI Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="p-4 border border-border bg-card">
-            <div className="text-[10px] font-mono uppercase text-muted-foreground">
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2, delay: 0.05 }}
+          className="grid grid-cols-1 sm:grid-cols-3 gap-4"
+        >
+          <div className="p-4 border border-border bg-card rounded-[4px] shadow-sm">
+            <div className="text-[10px] font-mono uppercase text-muted-foreground font-semibold">
               Total Actual Material Expenditure
             </div>
             <div className="text-xl font-bold font-mono text-foreground mt-1">
-              {formatINR(totalExpenditure)}
+              <AnimatedNumber
+                value={totalExpenditure}
+                formatter={(v) => formatINR(v)}
+              />
             </div>
             <div className="text-[10px] font-mono text-muted-foreground mt-0.5">
               Across {materials.length} verified vendor receipts
             </div>
           </div>
 
-          <div className="p-4 border border-border bg-card">
-            <div className="text-[10px] font-mono uppercase text-muted-foreground">
+          <div className="p-4 border border-border bg-card rounded-[4px] shadow-sm">
+            <div className="text-[10px] font-mono uppercase text-muted-foreground font-semibold">
               Categories Tracked
             </div>
             <div className="text-xl font-bold font-mono text-primary mt-1">
@@ -484,8 +504,8 @@ export default function MaterialsPage() {
             </div>
           </div>
 
-          <div className="p-4 border border-border bg-card">
-            <div className="text-[10px] font-mono uppercase text-muted-foreground">
+          <div className="p-4 border border-border bg-card rounded-[4px] shadow-sm">
+            <div className="text-[10px] font-mono uppercase text-muted-foreground font-semibold">
               Audited Site Photos
             </div>
             <div className="text-xl font-bold font-mono text-foreground mt-1">
@@ -495,7 +515,7 @@ export default function MaterialsPage() {
               Computer Vision stage verified
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Material Entries Table */}
         {isLoading ? (
@@ -511,7 +531,12 @@ export default function MaterialsPage() {
             onAction={canLogMaterial ? () => setShowAddForm(true) : undefined}
           />
         ) : (
-          <div className="border border-border bg-card overflow-hidden">
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2, delay: 0.1 }}
+            className="border border-border bg-card rounded-[4px] shadow-sm overflow-hidden"
+          >
             <div className="p-3 bg-muted/30 border-b border-border flex items-center justify-between">
               <span className="font-heading font-semibold text-xs text-foreground">
                 Verified Material Log Entries
@@ -525,46 +550,52 @@ export default function MaterialsPage() {
               <table className="w-full text-left text-xs font-mono">
                 <thead className="bg-muted/40 text-[10px] uppercase text-muted-foreground border-b border-border">
                   <tr>
-                    <th className="py-2 px-3">Entry ID</th>
-                    <th className="py-2 px-3">Date</th>
-                    <th className="py-2 px-3">Category</th>
-                    <th className="py-2 px-3">Description</th>
-                    <th className="py-2 px-3">Quantity</th>
-                    <th className="py-2 px-3">Unit Rate</th>
-                    <th className="py-2 px-3">Total Amount</th>
-                    <th className="py-2 px-3">Vendor / Invoice</th>
-                    <th className="py-2 px-3">Evidence</th>
+                    <th className="py-2.5 px-3 font-semibold">Entry ID</th>
+                    <th className="py-2.5 px-3 font-semibold">Date</th>
+                    <th className="py-2.5 px-3 font-semibold">Category</th>
+                    <th className="py-2.5 px-3 font-semibold">Description</th>
+                    <th className="py-2.5 px-3 font-semibold">Quantity</th>
+                    <th className="py-2.5 px-3 font-semibold">Unit Rate</th>
+                    <th className="py-2.5 px-3 font-semibold">Total Amount</th>
+                    <th className="py-2.5 px-3 font-semibold">Vendor / Invoice</th>
+                    <th className="py-2.5 px-3 font-semibold">Evidence</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/60">
-                  {materials.map((m) => (
-                    <tr key={m.entry_id} className="hover:bg-muted/30">
-                      <td className="py-2 px-3 font-semibold text-primary">{m.entry_id}</td>
-                      <td className="py-2 px-3 text-muted-foreground">{m.date}</td>
-                      <td className="py-2 px-3">
-                        <span className="px-1.5 py-0.5 bg-secondary border border-border text-[10px]">
+                  {materials.map((m, idx) => (
+                    <motion.tr
+                      key={m.entry_id}
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.15, delay: idx * 0.03 }}
+                      className="hover:bg-muted/30 transition-colors"
+                    >
+                      <td className="py-2.5 px-3 font-semibold text-primary">{m.entry_id}</td>
+                      <td className="py-2.5 px-3 text-muted-foreground">{m.date}</td>
+                      <td className="py-2.5 px-3">
+                        <span className="px-2 py-0.5 bg-secondary border border-border text-[10px] rounded-[4px] font-medium">
                           {m.material_category}
                         </span>
                       </td>
-                      <td className="py-2 px-3 text-foreground font-sans max-w-xs truncate">
+                      <td className="py-2.5 px-3 text-foreground font-sans max-w-xs truncate">
                         {m.item_description}
                       </td>
-                      <td className="py-2 px-3 font-semibold text-foreground">
+                      <td className="py-2.5 px-3 font-semibold text-foreground">
                         {m.quantity.toLocaleString()} {m.unit}
                       </td>
-                      <td className="py-2 px-3 text-muted-foreground">₹{m.unit_rate.toLocaleString()}</td>
-                      <td className="py-2 px-3 font-semibold text-foreground">{formatINR(m.total_cost)}</td>
-                      <td className="py-2 px-3 text-muted-foreground">
-                        <div>{m.vendor_name}</div>
+                      <td className="py-2.5 px-3 text-muted-foreground">₹{m.unit_rate.toLocaleString()}</td>
+                      <td className="py-2.5 px-3 font-semibold text-foreground">{formatINR(m.total_cost)}</td>
+                      <td className="py-2.5 px-3 text-muted-foreground">
+                        <div className="font-medium text-foreground">{m.vendor_name}</div>
                         <div className="text-[10px] text-muted-foreground/80">{m.invoice_number}</div>
                       </td>
-                      <td className="py-2 px-3">
+                      <td className="py-2.5 px-3">
                         {m.bill_photo_url ? (
                           <a
                             href={m.bill_photo_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline"
+                            className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline font-medium"
                           >
                             <Paperclip className="w-3 h-3" />
                             <span>View Bill</span>
@@ -573,16 +604,21 @@ export default function MaterialsPage() {
                           <span className="text-[10px] text-muted-foreground/60">—</span>
                         )}
                       </td>
-                    </tr>
+                    </motion.tr>
                   ))}
                 </tbody>
               </table>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* Site Photos & Classification Section */}
-        <div className="border border-border bg-card p-4 space-y-4">
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2, delay: 0.15 }}
+          className="border border-border bg-card p-5 space-y-4 rounded-[4px] shadow-sm"
+        >
           <div className="flex items-center justify-between border-b border-border pb-3">
             <div>
               <h3 className="font-heading font-semibold text-xs text-foreground flex items-center gap-1.5">
@@ -597,7 +633,7 @@ export default function MaterialsPage() {
             {canUploadPhoto && (
               <div
                 {...getPhotoRootProps()}
-                className="px-3 py-1.5 bg-secondary border border-border text-foreground hover:bg-muted cursor-pointer text-xs font-mono font-medium flex items-center gap-1.5"
+                className="px-3 py-1.5 bg-secondary border border-border text-foreground hover:bg-muted active:scale-[0.98] cursor-pointer text-xs font-mono font-medium flex items-center gap-1.5 rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary transition-all"
               >
                 <input {...getPhotoInputProps()} />
                 {isClassifying ? (
@@ -611,14 +647,14 @@ export default function MaterialsPage() {
           </div>
 
           {photos.length === 0 ? (
-            <div className="p-6 border border-dashed border-border text-center text-xs font-mono text-muted-foreground">
+            <div className="p-6 border border-dashed border-border text-center text-xs font-mono text-muted-foreground rounded-[4px]">
               No site photos uploaded for this project yet. Site Engineers can upload photos to verify work progress.
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {photos.map((p) => (
-                <div key={p.id} className="border border-border bg-background p-3 space-y-2">
-                  <div className="aspect-video bg-muted/40 relative overflow-hidden border border-border flex items-center justify-center">
+                <div key={p.id} className="border border-border bg-background p-3 space-y-2 rounded-[4px] shadow-sm hover:border-primary/40 transition-colors">
+                  <div className="aspect-video bg-muted/40 relative overflow-hidden border border-border flex items-center justify-center rounded-[4px]">
                     <img
                       src={p.photo_url}
                       alt={p.stage_label}
@@ -628,13 +664,13 @@ export default function MaterialsPage() {
                         ;(e.target as any).style.display = "none"
                       }}
                     />
-                    <div className="absolute top-2 right-2 px-1.5 py-0.5 bg-background/90 border border-border text-[9px] font-mono">
+                    <div className="absolute top-2 right-2 px-2 py-0.5 bg-background/90 border border-border text-[9px] font-mono rounded-[4px] font-semibold text-primary shadow-sm">
                       {Math.round(p.confidence_score * 100)}% CONFIDENCE
                     </div>
                   </div>
                   <div>
                     <div className="text-xs font-semibold text-foreground">{p.stage_label}</div>
-                    <div className="text-[10px] font-mono text-muted-foreground">
+                    <div className="text-[10px] font-mono text-muted-foreground mt-0.5">
                       Stage: <span className="font-bold text-primary">{p.predicted_stage}</span>
                     </div>
                     {p.uploaded_at && (
@@ -647,7 +683,7 @@ export default function MaterialsPage() {
               ))}
             </div>
           )}
-        </div>
+        </motion.div>
       </main>
     </div>
   )
