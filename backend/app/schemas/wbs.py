@@ -5,13 +5,13 @@ from backend.app.schemas.schedule import TaskItem
 
 class BuildingParametersInput(BaseModel):
     project_name: Optional[str] = Field(default=None, description="Project Name")
-    plot_area_sqft: float = Field(default=25000.0, ge=100.0, description="Plot area in sq.ft.")
-    built_up_area_sqft: float = Field(default=75000.0, ge=100.0, description="Total construction built-up area")
-    carpet_area_sqft: Optional[float] = Field(default=52500.0, ge=0.0)
-    number_of_floors: int = Field(default=15, ge=1, le=80, description="Number of above-ground floors (e.g. G+14)")
-    number_of_basements: int = Field(default=1, ge=0, le=5)
-    construction_type: str = Field(default="RCC_FRAME", description="RCC_FRAME | PRECAST | COMPOSITE")
-    base_rate_per_sqft: float = Field(default=2400.0, ge=500.0, description="Approximate construction rate (INR/sqft)")
+    plot_area_sqft: Optional[float] = Field(default=25000.0, description="Plot area in sq.ft.")
+    built_up_area_sqft: Optional[float] = Field(default=75000.0, description="Total construction built-up area")
+    carpet_area_sqft: Optional[float] = Field(default=52500.0)
+    number_of_floors: Optional[int] = Field(default=15, description="Number of above-ground floors (e.g. G+14)")
+    number_of_basements: Optional[int] = Field(default=1)
+    construction_type: Optional[str] = Field(default="RCC_FRAME", description="RCC_FRAME | PRECAST | COMPOSITE")
+    base_rate_per_sqft: Optional[float] = Field(default=2400.0, description="Approximate construction rate (INR/sqft)")
     target_handover_date: Optional[str] = Field(default="2027-12-15")
 
 
@@ -41,3 +41,7 @@ class ParametricWbsResponse(BaseModel):
     categories: List[WbsCategory]
     generated_tasks: List[TaskItem]
     cpm_makespan_days: int
+
+    @property
+    def dag_tasks(self) -> List[TaskItem]:
+        return self.generated_tasks

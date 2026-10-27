@@ -248,52 +248,89 @@ def generate_and_save_wbs(
         project_id, current_user, db, allowed_roles=["project_manager", "admin"]
     )
 
-    # Generate WBS
-    if not payload.project_name or not payload.project_name.strip():
-        payload.project_name = project.name
-    wbs_result = WBSGenerator.generate(payload)
-    wbs_data = wbs_result.model_dump()
+    try:
+        # Default parameters from project if not supplied or non-positive
+        if not payload.project_name or not payload.project_name.strip():
+            payload.project_name = project.name
+        if not payload.built_up_area_sqft or payload.built_up_area_sqft <= 0:
+            payload.built_up_area_sqft = project.built_up_area_sqft or 75000.0
+        if not payload.number_of_floors or payload.number_of_floors <= 0:
+            payload.number_of_floors = project.number_of_floors or 14
+        if payload.number_of_basements is None or payload.number_of_basements < 0:
+            payload.number_of_basements = project.number_of_basements or 1
+        if not payload.base_rate_per_sqft or payload.base_rate_per_sqft <= 0:
+            payload.base_rate_per_sqft = project.base_rate_per_sqft or 2400.0
 
-    # Update project parameters
-    project.built_up_area_sqft = payload.built_up_area_sqft
-    project.number_of_floors = payload.number_of_floors
-    project.number_of_basements = payload.number_of_basements
-    project.base_rate_per_sqft = payload.base_rate_per_sqft
-    project.total_project_cost = wbs_result.total_estimated_cost
-    project.wbs_data = wbs_data
+        wbs_result = WBSGenerator.generate(payload)
+        wbs_data = wbs_result.model_dump()
 
-    # Clear old tasks and populate new tasks from WBS
-    db.query(TaskModel).filter(TaskModel.project_id == project_id).delete()
+        # Update project parameters
+        project.built_up_area_sqft = payload.built_up_area_sqft
+        project.number_of_floors = payload.number_of_floors
+        project.number_of_basements = payload.number_of_basements
+        project.base_rate_per_sqft = payload.base_rate_per_sqft
+        project.total_project_cost = wbs_result.total_estimated_cost
+        project.wbs_data = wbs_data
 
-    for item in wbs_result.dag_tasks:
-        task_model = TaskModel(
-            id=item.id,
-            project_id=project_id,
-            name=item.name,
-            duration=item.duration,
-            normal_cost=item.normal_cost,
-            crash_cost=item.crash_cost,
-            crash_duration=item.crash_duration,
-            predecessors=item.predecessors or [],
-            resource_demands=item.resource_demands or {},
-            is_critical=item.is_critical,
-            total_float=item.total_float,
-            free_float=item.free_float,
-            progress_percent=0.0,
-            status="NOT_STARTED",
+        # Clear old tasks and populate new tasks from WBS
+        db.query(TaskModel).filter(TaskModel.project_id == project_id).delete()
+
+        tasks_list = getattr(wbs_result, "generated_tasks", None) or getattr(wbs_result, "dag_tasks", [])
+
+        # Pre-compute CPM mapping for float and criticality
+        cpm_map = {}
+        try:
+            cpm_res = CPMEngine(tasks_list).compute()
+            cpm_map = {t.id: t for t in cpm_res.tasks}
+        except Exception:
+            pass
+
+        tasks_added = 0
+        for item in tasks_list:
+            cpm_item = cpm_map.get(item.id)
+            is_crit = getattr(cpm_item, "is_critical", False) if cpm_item else False
+            tot_float = getattr(cpm_item, "total_float", 0) if cpm_item else 0
+            fr_float = getattr(cpm_item, "free_float", 0) if cpm_item else 0
+
+            norm_cost = float(getattr(item, "normal_cost", None) or getattr(item, "cost_normal", None) or 0.0)
+            cr_cost = float(getattr(item, "crash_cost", None) or getattr(item, "cost_crash", None) or (norm_cost * 1.35))
+            cr_dur = getattr(item, "crash_duration", None) or max(1, int(item.duration * 0.65))
+
+            task_model = TaskModel(
+                id=item.id,
+                project_id=project_id,
+                name=item.name,
+                duration=item.duration,
+                normal_cost=norm_cost,
+                crash_cost=cr_cost,
+                crash_duration=cr_dur,
+                predecessors=item.predecessors or [],
+                resource_demands=item.resource_demands or {},
+                is_critical=is_crit,
+                total_float=tot_float,
+                free_float=fr_float,
+                progress_percent=0.0,
+                status="NOT_STARTED",
+            )
+            db.merge(task_model)
+            tasks_added += 1
+
+        db.commit()
+        db.refresh(project)
+
+        return {
+            "status": "WBS_GENERATED",
+            "project_id": project.id,
+            "total_estimated_cost": project.total_project_cost,
+            "task_count": tasks_added,
+            "wbs_data": wbs_data,
+        }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"WBS generation failed: {str(e)}",
         )
-        db.add(task_model)
-
-    db.commit()
-    db.refresh(project)
-
-    return {
-        "status": "WBS_GENERATED",
-        "project_id": project.id,
-        "total_estimated_cost": project.total_project_cost,
-        "task_count": len(wbs_result.dag_tasks),
-        "wbs_data": wbs_data,
-    }
 
 
 @router.post("/{project_id}/schedule")

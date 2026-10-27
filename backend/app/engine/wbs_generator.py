@@ -225,6 +225,10 @@ class WBSGenerator:
                         predecessors=wbs_item.predecessors,
                         resource_demands=wbs_item.resource_demands,
                         cost_normal=wbs_item.estimated_cost,
+                        normal_cost=wbs_item.estimated_cost,
+                        cost_crash=round(wbs_item.estimated_cost * 1.35, 2),
+                        crash_cost=round(wbs_item.estimated_cost * 1.35, 2),
+                        crash_duration=max(1, int(wbs_item.duration_days * 0.65)),
                     )
                 )
 
