@@ -21,6 +21,8 @@ import {
   Play,
   AlertTriangle,
 } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber"
 
 interface SolverMetrics {
   solver_name: string
@@ -202,9 +204,14 @@ export default function BenchmarkPage() {
         isOptimizing={isRunning}
       />
 
-      <main className="p-4 md:p-6 space-y-6">
+      <main className="p-4 md:p-6 space-y-6 max-w-7xl">
         {/* Benchmark Header & Preset Selection */}
-        <div className="border border-border bg-card p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2 }}
+          className="border border-border bg-card p-4 rounded-[4px] shadow-sm"
+        >
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <div className="flex items-center gap-2">
@@ -222,7 +229,7 @@ export default function BenchmarkPage() {
               <select
                 value={selectedTarget}
                 onChange={(e) => setSelectedTarget(e.target.value)}
-                className="text-xs font-mono bg-background border border-border p-2 text-foreground"
+                className="text-xs font-mono bg-background border border-border p-2 text-foreground rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
               >
                 {activeProjectId && hasProjectTasks && (
                   <option value="active_project">
@@ -237,10 +244,11 @@ export default function BenchmarkPage() {
                 </option>
               </select>
 
-              <button
+              <motion.button
+                whileTap={{ scale: 0.98 }}
                 onClick={handleRun}
                 disabled={isRunning}
-                className="inline-flex items-center gap-1.5 px-3 py-2 bg-primary text-primary-foreground font-mono text-xs font-medium hover:bg-primary/90 transition-colors border border-primary disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 px-3 py-2 bg-primary text-primary-foreground font-mono text-xs font-medium hover:bg-primary/90 transition-colors border border-primary rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
               >
                 {isRunning ? (
                   <>
@@ -253,20 +261,25 @@ export default function BenchmarkPage() {
                     Run Solvers
                   </>
                 )}
-              </button>
+              </motion.button>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {error && (
-          <div className="p-3 bg-destructive/10 border border-destructive text-destructive font-mono text-xs flex items-center gap-2">
+          <div className="p-3 bg-destructive/10 border border-destructive text-destructive font-mono text-xs flex items-center gap-2 rounded-[4px]">
             <AlertTriangle className="w-4 h-4 shrink-0" />
             {error}
           </div>
         )}
 
         {!benchmark ? (
-          <div className="border border-dashed border-border bg-card/50 p-8 text-center space-y-3">
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2, delay: 0.05 }}
+            className="border border-dashed border-border bg-card/50 p-8 text-center space-y-3 rounded-[4px]"
+          >
             <Cpu className="w-8 h-8 text-primary mx-auto opacity-75" />
             <h3 className="font-heading font-semibold text-sm text-foreground">
               Ready to Benchmark Schedulers
@@ -274,10 +287,11 @@ export default function BenchmarkPage() {
             <p className="text-xs font-mono text-muted-foreground max-w-md mx-auto">
               Execute Google OR-Tools CP-SAT (exact mathematical constraint solver) against the Genetic Algorithm metaheuristic to verify schedule optimality and solve times.
             </p>
-            <button
+            <motion.button
+              whileTap={{ scale: 0.98 }}
               onClick={handleRun}
               disabled={isRunning}
-              className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground font-mono text-xs font-medium hover:bg-primary/90 transition-colors border border-primary disabled:opacity-50"
+              className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground font-mono text-xs font-medium hover:bg-primary/90 transition-colors border border-primary rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
             >
               {isRunning ? (
                 <>
@@ -290,19 +304,24 @@ export default function BenchmarkPage() {
                   Run Benchmark Now
                 </>
               )}
-            </button>
-          </div>
+            </motion.button>
+          </motion.div>
         ) : (
-          <>
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2, delay: 0.05 }}
+            className="space-y-6"
+          >
             {/* Top Metrics Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {/* GA Card */}
-              <div className="border border-border bg-card p-4 space-y-2">
+              <div className="border border-border bg-card p-4 space-y-2 rounded-[4px] shadow-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-mono uppercase text-muted-foreground font-semibold">
                     Heuristic Engine
                   </span>
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 bg-primary/10 border border-primary/20 text-primary">
+                  <span className="text-[10px] font-mono px-2 py-0.5 bg-primary/10 border border-primary/20 text-primary rounded-[4px] font-semibold">
                     {benchmark.ga_metrics.status}
                   </span>
                 </div>
@@ -311,22 +330,28 @@ export default function BenchmarkPage() {
                 </div>
                 <div className="pt-2 border-t border-border/60 flex items-baseline justify-between">
                   <span className="text-2xl font-bold font-mono text-foreground">
-                    {benchmark.ga_metrics.makespan_days}{" "}
+                    <AnimatedNumber
+                      value={benchmark.ga_metrics.makespan_days}
+                      formatter={(v) => `${v}`}
+                    />{" "}
                     <span className="text-xs font-normal text-muted-foreground">days</span>
                   </span>
                   <span className="text-xs font-mono text-muted-foreground">
-                    {benchmark.ga_metrics.runtime_ms.toFixed(1)} ms
+                    <AnimatedNumber
+                      value={benchmark.ga_metrics.runtime_ms}
+                      formatter={(v) => `${v.toFixed(1)} ms`}
+                    />
                   </span>
                 </div>
               </div>
 
               {/* CP-SAT Card */}
-              <div className="border border-border bg-card p-4 space-y-2">
+              <div className="border border-border bg-card p-4 space-y-2 rounded-[4px] shadow-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-mono uppercase text-muted-foreground font-semibold">
                     Exact Solver
                   </span>
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 bg-status-success/15 border border-status-success/30 text-status-success">
+                  <span className="text-[10px] font-mono px-2 py-0.5 bg-status-success/15 border border-status-success/30 text-status-success rounded-[4px] font-semibold">
                     {benchmark.cpsat_metrics.status}
                   </span>
                 </div>
@@ -335,22 +360,28 @@ export default function BenchmarkPage() {
                 </div>
                 <div className="pt-2 border-t border-border/60 flex items-baseline justify-between">
                   <span className="text-2xl font-bold font-mono text-status-success">
-                    {benchmark.cpsat_metrics.makespan_days}{" "}
+                    <AnimatedNumber
+                      value={benchmark.cpsat_metrics.makespan_days}
+                      formatter={(v) => `${v}`}
+                    />{" "}
                     <span className="text-xs font-normal text-muted-foreground">days</span>
                   </span>
                   <span className="text-xs font-mono text-muted-foreground">
-                    {benchmark.cpsat_metrics.runtime_ms.toFixed(1)} ms
+                    <AnimatedNumber
+                      value={benchmark.cpsat_metrics.runtime_ms}
+                      formatter={(v) => `${v.toFixed(1)} ms`}
+                    />
                   </span>
                 </div>
               </div>
 
               {/* Optimality Gap Card */}
-              <div className="border border-border bg-card p-4 space-y-2">
+              <div className="border border-border bg-card p-4 space-y-2 rounded-[4px] shadow-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-mono uppercase text-muted-foreground font-semibold">
                     Optimality Gap
                   </span>
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 bg-secondary border border-border text-foreground">
+                  <span className="text-[10px] font-mono px-2 py-0.5 bg-secondary border border-border text-foreground rounded-[4px] font-medium">
                     {benchmark.task_count} Tasks
                   </span>
                 </div>
@@ -361,9 +392,12 @@ export default function BenchmarkPage() {
                 </div>
                 <div className="pt-2 border-t border-border/60 flex items-baseline justify-between">
                   <span className="text-2xl font-bold font-mono text-primary">
-                    +{benchmark.optimality_gap_percent.toFixed(2)}%
+                    +<AnimatedNumber
+                      value={benchmark.optimality_gap_percent}
+                      formatter={(v) => `${v.toFixed(2)}%`}
+                    />
                   </span>
-                  <span className="text-xs font-mono text-status-success">
+                  <span className="text-xs font-mono text-status-success font-medium">
                     CP-SAT Validated
                   </span>
                 </div>
@@ -371,68 +405,88 @@ export default function BenchmarkPage() {
             </div>
 
             {/* View Selector & Export Buttons */}
-            <div className="border border-border bg-card">
-              <div className="p-3 border-b border-border flex items-center justify-between">
+            <div className="border border-border bg-card rounded-[4px] shadow-sm overflow-hidden">
+              <div className="p-3 border-b border-border flex items-center justify-between bg-muted/20">
                 <div className="flex items-center gap-2">
-                  <button
+                  <motion.button
+                    whileTap={{ scale: 0.98 }}
                     onClick={() => setActiveTab("table")}
-                    className={`px-3 py-1 text-xs font-mono border transition-colors ${
+                    className={`px-3 py-1 text-xs font-mono border rounded-[4px] transition-colors focus:outline-none focus:ring-1 focus:ring-primary ${
                       activeTab === "table"
-                        ? "bg-primary text-primary-foreground border-primary"
+                        ? "bg-primary text-primary-foreground border-primary font-semibold"
                         : "bg-background text-muted-foreground border-border hover:text-foreground"
                     }`}
                   >
                     Comparison Table
-                  </button>
-                  <button
+                  </motion.button>
+                  <motion.button
+                    whileTap={{ scale: 0.98 }}
                     onClick={() => setActiveTab("json")}
-                    className={`px-3 py-1 text-xs font-mono border transition-colors ${
+                    className={`px-3 py-1 text-xs font-mono border rounded-[4px] transition-colors focus:outline-none focus:ring-1 focus:ring-primary ${
                       activeTab === "json"
-                        ? "bg-primary text-primary-foreground border-primary"
+                        ? "bg-primary text-primary-foreground border-primary font-semibold"
                         : "bg-background text-muted-foreground border-border hover:text-foreground"
                     }`}
                   >
                     Raw Solver JSON
-                  </button>
+                  </motion.button>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <button
+                  <motion.button
+                    whileTap={{ scale: 0.98 }}
                     onClick={copyMarkdown}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono bg-secondary hover:bg-secondary/80 border border-border text-foreground transition-colors"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono bg-secondary hover:bg-secondary/80 border border-border text-foreground rounded-[4px] transition-colors focus:outline-none focus:ring-1 focus:ring-primary"
                   >
-                    {copiedMd ? <Check className="w-3 h-3 text-status-success" /> : <Copy className="w-3 h-3" />}
+                    {copiedMd ? <Check className="w-3.5 h-3.5 text-status-success" /> : <Copy className="w-3.5 h-3.5" />}
                     <span>{copiedMd ? "Copied Table" : "Copy Markdown"}</span>
-                  </button>
+                  </motion.button>
 
-                  <button
+                  <motion.button
+                    whileTap={{ scale: 0.98 }}
                     onClick={copyJson}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono bg-secondary hover:bg-secondary/80 border border-border text-foreground transition-colors"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono bg-secondary hover:bg-secondary/80 border border-border text-foreground rounded-[4px] transition-colors focus:outline-none focus:ring-1 focus:ring-primary"
                   >
-                    {copiedJson ? <Check className="w-3 h-3 text-status-success" /> : <Copy className="w-3 h-3" />}
+                    {copiedJson ? <Check className="w-3.5 h-3.5 text-status-success" /> : <Copy className="w-3.5 h-3.5" />}
                     <span>{copiedJson ? "Copied JSON" : "Copy JSON"}</span>
-                  </button>
+                  </motion.button>
                 </div>
               </div>
 
-              {activeTab === "table" ? (
-                <div className="p-4 overflow-x-auto font-mono text-xs">
-                  <div className="p-3 bg-muted/20 border border-border mb-4 text-[11px] text-muted-foreground">
-                    Benchmark Target: <span className="text-foreground font-semibold">{benchmark.benchmark_name}</span> | Resource Capacities: {JSON.stringify(benchmark.resource_limits)}
-                  </div>
-                  <pre className="whitespace-pre-wrap font-mono text-xs text-foreground bg-muted/10 p-4 border border-border">
-                    {benchmark.markdown_table}
-                  </pre>
-                </div>
-              ) : (
-                <div className="p-4 overflow-x-auto">
-                  <pre className="text-xs font-mono text-muted-foreground bg-muted/20 p-4 border border-border overflow-x-auto">
-                    {JSON.stringify(benchmark, null, 2)}
-                  </pre>
-                </div>
-              )}
+              <AnimatePresence mode="wait">
+                {activeTab === "table" ? (
+                  <motion.div
+                    key="table"
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    transition={{ duration: 0.15 }}
+                    className="p-4 overflow-x-auto font-mono text-xs"
+                  >
+                    <div className="p-3 bg-muted/20 border border-border mb-4 text-[11px] text-muted-foreground rounded-[4px]">
+                      Benchmark Target: <span className="text-foreground font-semibold">{benchmark.benchmark_name}</span> | Resource Capacities: {JSON.stringify(benchmark.resource_limits)}
+                    </div>
+                    <pre className="whitespace-pre-wrap font-mono text-xs text-[#E2E8F0] bg-[#12161F] p-4 border border-[#283243] rounded-[4px] shadow-inner">
+                      {benchmark.markdown_table}
+                    </pre>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="json"
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    transition={{ duration: 0.15 }}
+                    className="p-4 overflow-x-auto"
+                  >
+                    <pre className="text-xs font-mono text-[#E2E8F0] bg-[#12161F] p-4 border border-[#283243] rounded-[4px] overflow-x-auto shadow-inner">
+                      {JSON.stringify(benchmark, null, 2)}
+                    </pre>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-          </>
+          </motion.div>
         )}
       </main>
     </div>
