@@ -3,6 +3,7 @@
 import React from "react"
 import { CheckCircle2, AlertOctagon, TrendingUp, ShieldCheck } from "lucide-react"
 import { formatINR } from "@/lib/utils"
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber"
 
 interface RecoveryComparisonProps {
   delayDays?: number
@@ -23,7 +24,7 @@ export function RecoverySidePanel({
   const netSavings = Math.abs(penaltyCost - crashCost)
 
   return (
-    <div className="border border-border bg-card p-4 flex flex-col justify-between space-y-4">
+    <div className="border border-border bg-card p-4 rounded-[4px] flex flex-col justify-between space-y-4 shadow-sm">
       <div>
         <div className="flex items-center justify-between border-b border-border pb-2.5">
           <div>
@@ -34,7 +35,7 @@ export function RecoverySidePanel({
               MahaRERA Sec 18 vs Fast-Track Crashing
             </div>
           </div>
-          <span className="font-mono text-xs px-2 py-0.5 bg-destructive/10 text-destructive border border-destructive/20 font-medium">
+          <span className="font-mono text-xs px-2 py-0.5 bg-destructive/10 text-destructive border border-destructive/20 font-medium rounded-[4px]">
             +{delayDays}d Risk
           </span>
         </div>
@@ -43,23 +44,23 @@ export function RecoverySidePanel({
         <div className="mt-4 space-y-3">
           {/* Option A: Accept Penalty */}
           <div
-            className={`p-3 border transition-colors ${
+            className={`p-3 border rounded-[4px] transition-colors ${
               !isCrashCheaper
-                ? "border-status-success bg-status-success/5"
+                ? "border-status-success bg-status-success/5 ring-1 ring-status-success/30"
                 : "border-border bg-muted/20 opacity-85"
             }`}
           >
             <div className="flex items-start justify-between">
               <div>
-                <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground block">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground block font-medium">
                   OPTION A • ACCEPT RERA PENALTY
                 </span>
                 <span className="text-lg font-mono font-bold text-foreground">
-                  {formatINR(penaltyCost)}
+                  <AnimatedNumber value={penaltyCost} formatter={(v) => formatINR(v)} />
                 </span>
               </div>
               {!isCrashCheaper ? (
-                <span className="flex items-center gap-1 text-[10px] font-mono text-status-success font-semibold px-1.5 py-0.5 bg-status-success/15 border border-status-success/30">
+                <span className="flex items-center gap-1 text-[10px] font-mono text-status-success font-semibold px-1.5 py-0.5 bg-status-success/15 border border-status-success/30 rounded-[4px]">
                   <CheckCircle2 className="w-3 h-3" /> CHEAPER
                 </span>
               ) : (
@@ -77,7 +78,7 @@ export function RecoverySidePanel({
 
           {/* Option B: Crash Critical Tasks */}
           <div
-            className={`p-3 border transition-colors ${
+            className={`p-3 border rounded-[4px] transition-colors ${
               isCrashCheaper
                 ? "border-status-success bg-status-success/5 ring-1 ring-status-success/30"
                 : "border-border bg-muted/20 opacity-85"
@@ -85,15 +86,15 @@ export function RecoverySidePanel({
           >
             <div className="flex items-start justify-between">
               <div>
-                <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground block">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground block font-medium">
                   OPTION B • CRASH SCHEDULE (RECOMMENDED)
                 </span>
                 <span className="text-lg font-mono font-bold text-primary">
-                  {formatINR(crashCost)}
+                  <AnimatedNumber value={crashCost} formatter={(v) => formatINR(v)} />
                 </span>
               </div>
               {isCrashCheaper ? (
-                <span className="flex items-center gap-1 text-[10px] font-mono text-status-success font-semibold px-1.5 py-0.5 bg-status-success/15 border border-status-success/30">
+                <span className="flex items-center gap-1 text-[10px] font-mono text-status-success font-semibold px-1.5 py-0.5 bg-status-success/15 border border-status-success/30 rounded-[4px]">
                   <CheckCircle2 className="w-3 h-3" /> CHEAPER
                 </span>
               ) : (
@@ -111,7 +112,7 @@ export function RecoverySidePanel({
         </div>
 
         {/* Recommendation Summary */}
-        <div className="mt-4 p-3 bg-secondary/70 border border-border">
+        <div className="mt-4 p-3 bg-secondary/70 border border-border rounded-[4px]">
           <div className="flex items-center gap-2 text-xs font-semibold font-heading text-foreground">
             <ShieldCheck className="w-4 h-4 text-primary" />
             <span>AI RECOMMENDATION</span>
@@ -120,12 +121,16 @@ export function RecoverySidePanel({
             {isCrashCheaper ? (
               <>
                 <strong className="text-primary font-medium">Crash critical activities</strong> immediately. This saves{" "}
-                <span className="font-mono font-bold text-status-success">{formatINR(netSavings)}</span> compared to paying RERA delay penalties and preserves statutory compliance.
+                <span className="font-mono font-bold text-status-success">
+                  <AnimatedNumber value={netSavings} formatter={(v) => formatINR(v)} />
+                </span> compared to paying RERA delay penalties and preserves statutory compliance.
               </>
             ) : (
               <>
                 <strong className="text-foreground font-medium">Accept RERA penalty</strong>. Crashing labor/equipment costs exceed the calculated statutory penalty by{" "}
-                <span className="font-mono font-bold text-destructive">{formatINR(netSavings)}</span>.
+                <span className="font-mono font-bold text-destructive">
+                  <AnimatedNumber value={netSavings} formatter={(v) => formatINR(v)} />
+                </span>.
               </>
             )}
           </p>

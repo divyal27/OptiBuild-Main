@@ -20,6 +20,8 @@ import {
   Loader2,
   Play,
 } from "lucide-react"
+import { motion } from "framer-motion"
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber"
 
 interface CrashAction {
   task_id: string
@@ -258,9 +260,14 @@ export default function OptimizerPage() {
         isOptimizing={isCalculating}
       />
 
-      <main className="p-4 md:p-6 space-y-6">
+      <main className="p-4 md:p-6 space-y-6 max-w-7xl">
         {/* Statutory Formula Banner */}
-        <div className="border border-border bg-card p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2 }}
+          className="border border-border bg-card p-4 rounded-[4px] flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm"
+        >
           <div>
             <div className="flex items-center gap-2">
               <Scale className="w-4 h-4 text-primary" />
@@ -274,13 +281,14 @@ export default function OptimizerPage() {
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <span className="text-xs font-mono px-2.5 py-1 bg-secondary border border-border text-foreground">
+            <span className="text-xs font-mono px-2.5 py-1 bg-secondary border border-border text-foreground rounded-[4px]">
               Statutory Rate: {(sbiMclr + reraSpread).toFixed(2)}% p.a.
             </span>
-            <button
+            <motion.button
+              whileTap={{ scale: 0.98 }}
               onClick={handleRecalculate}
               disabled={isCalculating}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground font-mono text-xs font-medium hover:bg-primary/90 transition-colors border border-primary disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground font-mono text-xs font-medium hover:bg-primary/90 transition-colors border border-primary rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
             >
               {isCalculating ? (
                 <>
@@ -293,21 +301,26 @@ export default function OptimizerPage() {
                   Evaluate Strategy
                 </>
               )}
-            </button>
+            </motion.button>
           </div>
-        </div>
+        </motion.div>
 
         {error && (
-          <div className="p-3 bg-destructive/10 border border-destructive text-destructive font-mono text-xs flex items-center gap-2">
+          <div className="p-3 bg-destructive/10 border border-destructive text-destructive font-mono text-xs flex items-center gap-2 rounded-[4px]">
             <AlertTriangle className="w-4 h-4 shrink-0" />
             {error}
           </div>
         )}
 
         {/* Input Controls Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 border border-border bg-card p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2, delay: 0.05 }}
+          className="grid grid-cols-1 sm:grid-cols-4 gap-3 border border-border bg-card p-4 rounded-[4px] shadow-sm"
+        >
           <div>
-            <label className="text-[10px] font-mono text-muted-foreground uppercase block mb-1">
+            <label className="text-[10px] font-mono text-muted-foreground uppercase block mb-1 font-semibold">
               Allottee Investment (₹ Cr)
             </label>
             <input
@@ -316,15 +329,15 @@ export default function OptimizerPage() {
               min="0.5"
               value={investmentCrores}
               onChange={(e) => setInvestmentCrores(parseFloat(e.target.value) || 0)}
-              className="w-full text-xs font-mono bg-background border border-border p-2 text-foreground"
+              className="w-full text-xs font-mono bg-background border border-border p-2 text-foreground rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-colors"
             />
-            <span className="text-[10px] font-mono text-muted-foreground mt-0.5 block">
+            <span className="text-[10px] font-mono text-muted-foreground mt-1 block">
               {formatINR(investmentCrores * 10000000)}
             </span>
           </div>
 
           <div>
-            <label className="text-[10px] font-mono text-muted-foreground uppercase block mb-1">
+            <label className="text-[10px] font-mono text-muted-foreground uppercase block mb-1 font-semibold">
               SBI MCLR Benchmark (%)
             </label>
             <input
@@ -332,15 +345,15 @@ export default function OptimizerPage() {
               step="0.05"
               value={sbiMclr}
               onChange={(e) => setSbiMclr(parseFloat(e.target.value) || 0)}
-              className="w-full text-xs font-mono bg-background border border-border p-2 text-foreground"
+              className="w-full text-xs font-mono bg-background border border-border p-2 text-foreground rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-colors"
             />
-            <span className="text-[10px] font-mono text-muted-foreground mt-0.5 block">
+            <span className="text-[10px] font-mono text-muted-foreground mt-1 block">
               Highest Marginal Cost
             </span>
           </div>
 
           <div>
-            <label className="text-[10px] font-mono text-muted-foreground uppercase block mb-1">
+            <label className="text-[10px] font-mono text-muted-foreground uppercase block mb-1 font-semibold">
               RERA Spread (%)
             </label>
             <input
@@ -348,15 +361,15 @@ export default function OptimizerPage() {
               step="0.25"
               value={reraSpread}
               onChange={(e) => setReraSpread(parseFloat(e.target.value) || 0)}
-              className="w-full text-xs font-mono bg-background border border-border p-2 text-foreground"
+              className="w-full text-xs font-mono bg-background border border-border p-2 text-foreground rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-colors"
             />
-            <span className="text-[10px] font-mono text-muted-foreground mt-0.5 block">
+            <span className="text-[10px] font-mono text-muted-foreground mt-1 block">
               Prescribed: +200 bps
             </span>
           </div>
 
           <div>
-            <label className="text-[10px] font-mono text-muted-foreground uppercase block mb-1">
+            <label className="text-[10px] font-mono text-muted-foreground uppercase block mb-1 font-semibold">
               Forecasted Delay (Days)
             </label>
             <input
@@ -365,17 +378,22 @@ export default function OptimizerPage() {
               max="180"
               value={delayDays}
               onChange={(e) => setDelayDays(parseInt(e.target.value) || 0)}
-              className="w-full text-xs font-mono bg-background border border-border p-2 text-foreground"
+              className="w-full text-xs font-mono bg-background border border-border p-2 text-foreground rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-colors"
             />
-            <span className="text-[10px] font-mono text-muted-foreground mt-0.5 block">
+            <span className="text-[10px] font-mono text-muted-foreground mt-1 block">
               Calendar days behind
             </span>
           </div>
-        </div>
+        </motion.div>
 
         {/* Results View or Prompt to Run */}
         {!result ? (
-          <div className="border border-dashed border-border bg-card/50 p-8 text-center space-y-3">
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2, delay: 0.1 }}
+            className="border border-dashed border-border bg-card/50 p-8 text-center space-y-3 rounded-[4px]"
+          >
             <Calculator className="w-8 h-8 text-primary mx-auto opacity-75" />
             <h3 className="font-heading font-semibold text-sm text-foreground">
               Ready to Evaluate Delay Trade-offs
@@ -384,10 +402,11 @@ export default function OptimizerPage() {
               Compare the statutory MahaRERA interest liability against crashing activities on the critical path
               for the {tasks.length} tasks in {activeProject?.name}.
             </p>
-            <button
+            <motion.button
+              whileTap={{ scale: 0.98 }}
               onClick={handleRecalculate}
               disabled={isCalculating}
-              className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground font-mono text-xs font-medium hover:bg-primary/90 transition-colors border border-primary disabled:opacity-50"
+              className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground font-mono text-xs font-medium hover:bg-primary/90 transition-colors border border-primary rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
             >
               {isCalculating ? (
                 <>
@@ -400,15 +419,20 @@ export default function OptimizerPage() {
                   Run Delay vs Crashing Analysis
                 </>
               )}
-            </button>
-          </div>
+            </motion.button>
+          </motion.div>
         ) : (
-          <>
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2, delay: 0.1 }}
+            className="space-y-6"
+          >
             {/* Comparison Result Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {/* Option A: Accept MahaRERA Delay Penalty */}
               <div
-                className={`border p-4 transition-colors ${
+                className={`border p-5 rounded-[4px] transition-colors shadow-sm ${
                   !isCrashCheaper
                     ? "border-status-success bg-status-success/[0.04] ring-1 ring-status-success/30"
                     : "border-border bg-card"
@@ -419,40 +443,48 @@ export default function OptimizerPage() {
                     OPTION A • ACCEPT RERA PENALTY
                   </span>
                   {!isCrashCheaper && (
-                    <span className="text-[10px] font-mono px-2 py-0.5 bg-status-success/15 border border-status-success/30 text-status-success font-bold flex items-center gap-1">
+                    <span className="text-[10px] font-mono px-2 py-0.5 bg-status-success/15 border border-status-success/30 text-status-success font-bold flex items-center gap-1 rounded-[4px]">
                       <CheckCircle2 className="w-3 h-3" /> CHEAPER STRATEGY
                     </span>
                   )}
                 </div>
 
                 <div className="mt-4">
-                  <span className="text-[11px] font-mono text-muted-foreground block">
+                  <span className="text-[11px] font-mono text-muted-foreground block font-medium">
                     Total Statutory Liability
                   </span>
                   <div className="mt-1 text-3xl font-mono font-bold text-foreground">
-                    {formatINR(result.total_rera_penalty)}
+                    <AnimatedNumber
+                      value={result.total_rera_penalty}
+                      formatter={(v) => formatINR(v)}
+                    />
                   </div>
                 </div>
 
                 <div className="mt-4 space-y-2 text-xs font-mono text-muted-foreground border-t border-border/50 pt-3">
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center">
                     <span>Daily Interest Rate:</span>
-                    <span className="text-foreground">{formatINR(result.rera_daily_penalty)} / day</span>
+                    <span className="text-foreground font-medium">
+                      <AnimatedNumber
+                        value={result.rera_daily_penalty}
+                        formatter={(v) => `${formatINR(v)} / day`}
+                      />
+                    </span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center">
                     <span>Applicable Annual Rate:</span>
-                    <span className="text-foreground">{result.effective_annual_rate}%</span>
+                    <span className="text-foreground font-medium">{result.effective_annual_rate}%</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center">
                     <span>Direct Allottee Liability:</span>
-                    <span className="text-foreground">{delayDays} days interest</span>
+                    <span className="text-foreground font-medium">{delayDays} days interest</span>
                   </div>
                 </div>
               </div>
 
               {/* Option B: Fast-Track Schedule Crashing */}
               <div
-                className={`border p-4 transition-colors ${
+                className={`border p-5 rounded-[4px] transition-colors shadow-sm ${
                   isCrashCheaper
                     ? "border-status-success bg-status-success/[0.04] ring-1 ring-status-success/30"
                     : "border-border bg-card"
@@ -463,42 +495,50 @@ export default function OptimizerPage() {
                     OPTION B • CRASH SCHEDULE (EXPEDITE)
                   </span>
                   {isCrashCheaper && (
-                    <span className="text-[10px] font-mono px-2 py-0.5 bg-status-success/15 border border-status-success/30 text-status-success font-bold flex items-center gap-1">
+                    <span className="text-[10px] font-mono px-2 py-0.5 bg-status-success/15 border border-status-success/30 text-status-success font-bold flex items-center gap-1 rounded-[4px]">
                       <CheckCircle2 className="w-3 h-3" /> CHEAPER STRATEGY
                     </span>
                   )}
                 </div>
 
                 <div className="mt-4">
-                  <span className="text-[11px] font-mono text-muted-foreground block">
+                  <span className="text-[11px] font-mono text-muted-foreground block font-medium">
                     Total Additional Crashing Cost
                   </span>
                   <div className="mt-1 text-3xl font-mono font-bold text-primary">
-                    {formatINR(result.total_crash_cost)}
+                    <AnimatedNumber
+                      value={result.total_crash_cost}
+                      formatter={(v) => formatINR(v)}
+                    />
                   </div>
                 </div>
 
                 <div className="mt-4 space-y-2 text-xs font-mono text-muted-foreground border-t border-border/50 pt-3">
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center">
                     <span>Days Recovered:</span>
                     <span className="text-status-success font-bold">-{result.days_recovered} days</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center">
                     <span>Crashing Actions:</span>
-                    <span className="text-foreground">
+                    <span className="text-foreground font-medium">
                       {result.crashing_actions ? result.crashing_actions.length : 0} activities compressed
                     </span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center">
                     <span>Net Financial Savings:</span>
-                    <span className="text-status-success font-bold">{formatINR(result.net_savings)}</span>
+                    <span className="text-status-success font-bold">
+                      <AnimatedNumber
+                        value={result.net_savings}
+                        formatter={(v) => formatINR(v)}
+                      />
+                    </span>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* AI Decision Card */}
-            <div className="border border-border bg-secondary/60 p-4">
+            <div className="border border-border bg-secondary/60 p-4 rounded-[4px] shadow-sm">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-primary" />
                 <h3 className="font-heading font-semibold text-xs text-foreground uppercase tracking-wider">
@@ -512,7 +552,7 @@ export default function OptimizerPage() {
 
             {/* Crashing Execution Plan Table */}
             {result.crashing_actions && result.crashing_actions.length > 0 && (
-              <div className="border border-border bg-card">
+              <div className="border border-border bg-card rounded-[4px] shadow-sm overflow-hidden">
                 <div className="p-3 border-b border-border bg-muted/30 flex items-center justify-between">
                   <div>
                     <h3 className="font-heading font-semibold text-xs text-foreground uppercase tracking-wider">
@@ -522,7 +562,7 @@ export default function OptimizerPage() {
                       Optimal sequence of activity compression calculated via CPM cost-slope minimization
                     </p>
                   </div>
-                  <span className="text-[11px] font-mono px-2 py-0.5 border border-border bg-background">
+                  <span className="text-[11px] font-mono px-2 py-0.5 border border-border bg-background rounded-[4px] font-semibold text-primary">
                     TOTAL RECOVERED: {result.days_recovered} DAYS
                   </span>
                 </div>
@@ -546,7 +586,7 @@ export default function OptimizerPage() {
                         <tr key={act.task_id} className="hover:bg-muted/30 transition-colors">
                           <td className="p-2.5 font-bold text-foreground">{act.task_id}</td>
                           <td className="p-2.5 font-sans font-medium text-foreground">{act.task_name}</td>
-                          <td className="p-2.5 text-right">{act.original_duration}d</td>
+                          <td className="p-2.5 text-right text-muted-foreground">{act.original_duration}d</td>
                           <td className="p-2.5 text-right font-bold text-primary">{act.new_duration}d</td>
                           <td className="p-2.5 text-right font-bold text-status-success">-{act.days_shortened}d</td>
                           <td className="p-2.5 text-right text-muted-foreground">{formatINR(act.cost_per_day)}/d</td>
@@ -561,7 +601,7 @@ export default function OptimizerPage() {
                 </div>
               </div>
             )}
-          </>
+          </motion.div>
         )}
       </main>
     </div>
