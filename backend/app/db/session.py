@@ -71,9 +71,14 @@ DATABASE_URL = clean_database_url(_raw_database_url) if _raw_database_url else N
 
 # Initialize SQLAlchemy engine with NullPool for transaction pooling (port 6543)
 if DATABASE_URL:
+    engine_kwargs = {}
+    if not DATABASE_URL.startswith("sqlite"):
+        engine_kwargs["poolclass"] = NullPool
+    else:
+        engine_kwargs["connect_args"] = {"check_same_thread": False}
     engine = create_engine(
         DATABASE_URL,
-        poolclass=NullPool,
+        **engine_kwargs,
     )
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 else:

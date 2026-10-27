@@ -48,8 +48,8 @@ class AssignMemberRequest(BaseModel):
 
 class RunSchedulePayload(BaseModel):
     resource_limits: Optional[Dict[str, int]] = None
-    ga_population_size: int = 40
-    ga_generations: int = 80
+    ga_population_size: Optional[int] = 40
+    ga_generations: Optional[int] = 80
 
 
 @router.get("")
@@ -338,8 +338,8 @@ def run_and_save_schedule(
     ga_engine = RCPSPGeneticAlgorithm(
         tasks=task_items,
         resource_limits=resource_limits,
-        population_size=payload.ga_population_size,
-        generations=payload.ga_generations,
+        population_size=payload.ga_population_size or 40,
+        generations=payload.ga_generations or 80,
     )
     ga_result = ga_engine.solve()
 

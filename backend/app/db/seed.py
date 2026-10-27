@@ -69,6 +69,10 @@ def seed_database():
     Ensures zero fake projects or mock MahaRERA certificates.
     """
     print("[*] Running OptiBuild seed script...")
+    from backend.app.db.session import engine, Base
+    import backend.app.db.models
+    if engine:
+        Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     try:
         # 1. Seed or find empty organization

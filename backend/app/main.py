@@ -44,6 +44,16 @@ app.include_router(rera_router, prefix=settings.API_V1_STR)
 app.include_router(materials_router, prefix=settings.API_V1_STR)
 app.include_router(dashboard_router, prefix=settings.API_V1_STR)
 
+# Ensure database tables exist automatically on startup
+from backend.app.db.session import engine, Base
+import backend.app.db.models  # noqa: F401
+
+if engine:
+    try:
+        Base.metadata.create_all(bind=engine)
+    except Exception as _e:
+        pass
+
 
 
 @app.get("/health", tags=["Health"])

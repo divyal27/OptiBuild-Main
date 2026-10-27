@@ -44,7 +44,8 @@ def run_benchmark(
         limits = payload.resource_limits
 
         if not tasks:
-            preset = BENCHMARK_PRESETS.get("medium_superstructure")
+            preset_key = "small_substructure" if (payload.benchmark_name and "small" in payload.benchmark_name.lower()) else "medium_superstructure"
+            preset = BENCHMARK_PRESETS.get(preset_key)
             tasks = preset["tasks"]
             limits = preset["resource_limits"]
         elif limits is None:
