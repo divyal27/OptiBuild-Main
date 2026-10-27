@@ -110,38 +110,57 @@ class MahaRERAPDFParser:
     def extract_from_text(cls, text: str) -> MahaRERAPreFillDraft:
         confidence: Dict[str, str] = {}
 
-        # 1. RERA Registration Number (e.g. P52100018921 or P51800001234)
-        rera_match = re.search(r"\b(P5[0-9]{9,10})\b", text, re.IGNORECASE)
+        # 1. RERA Registration / Application Number (e.g. P52100018921 or REA50500000459 or P51800001234)
+        rera_match = re.search(r"\b(P5[0-9]{9,10}|REA[0-9]{8,15})\b", text, re.IGNORECASE)
+        if not rera_match:
+            rera_match = re.search(
+                r"(?:Application\s*No\.?|Registration\s*No\.?|Certificate\s*No\.?)\s*[:\-]?\s*([A-Za-z0-9]+)",
+                text,
+                re.IGNORECASE,
+            )
         rera_no = rera_match.group(1).upper() if rera_match else None
         confidence["rera_registration_no"] = "HIGH" if rera_no else "NOT_FOUND"
 
         # 2. Project Name
         proj_match = re.search(
-            r"(?:Project Name|Name of Project|Project)\s*[:\-]\s*([^\n\r]+)",
+            r"(?:Project\s+Name|Name\s+of\s+Project)\s*[:\-]?\s*([^\n\r]+?)(?:\s+(?:Project\s+Status|Project\s+Type|Revised|Litigations)|[\n\r]|$)",
             text,
             re.IGNORECASE,
         )
-        if proj_match:
+        if proj_match and len(proj_match.group(1).strip()) > 1:
             project_name = proj_match.group(1).strip()
             confidence["project_name"] = "HIGH"
         else:
             # Fallback heuristic: First capitalized title line
-            first_lines = [l.strip() for l in text.splitlines() if len(l.strip()) > 5][:5]
+            first_lines = [l.strip() for l in text.splitlines() if len(l.strip()) > 5 and not l.strip().startswith("MahaRERA")][:5]
             project_name = first_lines[0] if first_lines else "Untitled RERA Project"
             confidence["project_name"] = "INFERRED"
 
         # 3. Promoter Name
-        promoter_match = re.search(
-            r"(?:Promoter Name|Developer|Promoter/Developer|Company Name)\s*[:\-]\s*([^\n\r]+)",
+        promoter_name = None
+        prom_match = re.search(
+            r"(?:Promoter\s+Name|Developer|Promoter/Developer|Company\s+Name)\s*[:\-]?\s*([^\n\r]+?)(?:\s+PAN|\s+Number|[\n\r]|$)",
             text,
             re.IGNORECASE,
         )
-        promoter_name = promoter_match.group(1).strip() if promoter_match else None
+        if prom_match and len(prom_match.group(1).strip()) > 2 and "INFRA" not in prom_match.group(1):
+            promoter_name = prom_match.group(1).strip()
+        else:
+            org_match = re.search(
+                r"Organization\s*\n\s*Name\s+([A-Z0-9\s]+?)(?:\s+PAN|\s+Number|\n|$)",
+                text,
+                re.IGNORECASE,
+            )
+            if org_match:
+                promoter_name = org_match.group(1).strip()
+                vent_match = re.search(r"PAN Number\s+[A-Z0-9]+\s*\n\s*([A-Za-z0-9\s]+?)(?:\s+Organization\s+Type|\n|$)", text, re.IGNORECASE)
+                if vent_match and len(vent_match.group(1).strip()) > 0:
+                    promoter_name = f"{promoter_name} {vent_match.group(1).strip()}"
         confidence["promoter_name"] = "HIGH" if promoter_name else "NOT_FOUND"
 
         # 4. Proposed Handover Date
         date_match = re.search(
-            r"(?:Proposed Date of Completion|Revised Proposed Date of Completion|Handover Date|Completion Date)\s*[:\-]\s*([0-9]{1,2}[/-][0-9]{1,2}[/-][0-9]{4}|[0-9]{1,2}\s+[A-Za-z]+\s+[0-9]{4})",
+            r"(?:Proposed\s+Date\s+of\s+Completion|Revised\s+Proposed\s+Date\s+of\s+Completion|Proposed\s+Date\s+of(?:\s+Completion)?|Handover\s+Date|Completion\s+Date)\s*[:\-]?\s*([0-9]{1,2}[/-][0-9]{1,2}[/-][0-9]{4}|[0-9]{1,2}\s+[A-Za-z]+\s+[0-9]{4})",
             text,
             re.IGNORECASE,
         )
@@ -150,12 +169,25 @@ class MahaRERAPDFParser:
 
         # 5. Built-up Area & Plot Area (handling sq.mt to sq.ft conversion)
         built_up_area, built_up_conf = cls._extract_area(
-            text, [r"Sanctioned Built-up Area", r"Total Built-up Area", r"Built-up Area", r"FSI Area"]
+            text, [
+                r"Sanctioned Built-up Area",
+                r"Total Built-up Area",
+                r"Built-up-Area as per Approved FSI",
+                r"Built-up Area",
+                r"TotalFSI",
+                r"FSI Area",
+            ]
         )
         confidence["built_up_area_sqft"] = built_up_conf
 
         plot_area, plot_conf = cls._extract_area(
-            text, [r"Plot Area", r"Total Area of Land", r"Land Area"]
+            text, [
+                r"Plot Area",
+                r"Total Area of Land",
+                r"Land Area",
+                r"Area\(In sqmts\)",
+                r"Area \(In sqmts\)",
+            ]
         )
         confidence["plot_area_sqft"] = plot_conf
 
@@ -164,10 +196,11 @@ class MahaRERAPDFParser:
         )
         confidence["carpet_area_sqft"] = carpet_conf
 
-        # 6. Floors Count
+        # 6. Floors Count & Basements Count
         floors = None
+        basements = None
         floors_match = re.search(
-            r"(?:Number of Floors|Total Floors|No\. of Floors)\s*[:\-]\s*([0-9]+)",
+            r"(?:Number of Floors|Total Floors|No\. of Floors)\s*[:\-]?\s*([0-9]+)",
             text,
             re.IGNORECASE,
         )
@@ -175,30 +208,45 @@ class MahaRERAPDFParser:
             floors = int(floors_match.group(1))
             confidence["number_of_floors"] = "HIGH"
         else:
-            # Check G+N pattern
-            g_plus = re.search(r"G\s*\+\s*([0-9]+)", text, re.IGNORECASE)
-            if g_plus:
-                floors = 1 + int(g_plus.group(1))
+            # Check building table rows: Sr.No. Project Name ... <basement> <plinth> <podium> <slab> <stilt> <open> <closed>
+            slabs = []
+            row_basements = []
+            for line in text.splitlines():
+                m_row = re.search(r"\b(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)$", line.strip())
+                if m_row and int(m_row.group(4)) < 150:
+                    row_basements.append(int(m_row.group(1)))
+                    slabs.append(int(m_row.group(4)))
+            if slabs:
+                floors = max(slabs)
                 confidence["number_of_floors"] = "HIGH"
+            if row_basements:
+                basements = max(row_basements)
+                confidence["number_of_basements"] = "HIGH"
             else:
-                confidence["number_of_floors"] = "NOT_FOUND"
+                # Check G+N pattern
+                g_plus = re.search(r"G\s*\+\s*([0-9]+)", text, re.IGNORECASE)
+                if g_plus:
+                    floors = 1 + int(g_plus.group(1))
+                    confidence["number_of_floors"] = "HIGH"
+                else:
+                    confidence["number_of_floors"] = "NOT_FOUND"
 
-        # 7. Basements Count
-        basements = None
-        base_match = re.search(
-            r"(?:Number of Basements|Basements)\s*[:\-]\s*([0-9]+)",
-            text,
-            re.IGNORECASE,
-        )
-        if base_match:
-            basements = int(base_match.group(1))
-            confidence["number_of_basements"] = "HIGH"
-        else:
-            confidence["number_of_basements"] = "NOT_FOUND"
+        # 7. Basements Count (if not found in rows)
+        if basements is None:
+            base_match = re.search(
+                r"(?:Number of Basements|Basements|Number of Basement's)\s*[:\-]?\s*([0-9]+)",
+                text,
+                re.IGNORECASE,
+            )
+            if base_match:
+                basements = int(base_match.group(1))
+                confidence["number_of_basements"] = "HIGH"
+            else:
+                confidence["number_of_basements"] = "NOT_FOUND"
 
         # 8. Project Cost
         cost_match = re.search(
-            r"(?:Total Estimated Cost|Estimated Cost of Project|Project Cost)\s*[:\-]\s*(?:Rs\.?|INR|₹)?\s*([0-9,]+(?:\.[0-9]+)?)",
+            r"(?:Total Estimated Cost of Project|Total Estimated Cost|Estimated Cost of Project|Project Cost|Total Amount Paid by User)\s*[:\-]?\s*(?:Rs\.?|INR|₹)?\s*([0-9,]+(?:\.[0-9]+)?)",
             text,
             re.IGNORECASE,
         )
@@ -236,7 +284,7 @@ class MahaRERAPDFParser:
     def _extract_area(text: str, label_patterns: list) -> Tuple[Optional[float], str]:
         for lbl in label_patterns:
             pattern = (
-                rf"{lbl}\s*[:\-]\s*([0-9,]+(?:\.[0-9]+)?)\s*(sq\.?\s*m(?:tr)?|sqm|sq\.?\s*ft|sqft)?"
+                rf"{lbl}\s*(?:\(In sqmts\))?\s*[:\-]?\s*([0-9,]+(?:\.[0-9]+)?)(?:\s*(sq\.?\s*m(?:tr)?|sqm|sq\.?\s*ft|sqft))?"
             )
             match = re.search(pattern, text, re.IGNORECASE)
             if match:
@@ -244,8 +292,10 @@ class MahaRERAPDFParser:
                 unit = match.group(2) or ""
                 try:
                     num = float(val_str)
-                    # Convert square meters to square feet if unit indicates meters
-                    if "m" in unit.lower():
+                    if num <= 0:
+                        continue
+                    # Convert square meters to square feet if unit indicates meters or label implies meters
+                    if "m" in unit.lower() or "sqmts" in lbl.lower() or "fsi" in lbl.lower():
                         sqft = round(num * 10.7639, 2)
                     else:
                         sqft = round(num, 2)
