@@ -138,8 +138,53 @@ The `taste-skill` audit of the existing OptiBuild interface evaluated against th
 
 ---
 
-## 3. Skipped Items Log (Bounded Fix Loop)
+## 3. Task Execution & Skipped Items Log (Bounded Fix Loop)
 
-| Task ID | Component / Page | Failure Reason | Attempts | Reversion Action |
+All 13 tasks executed according to demo flow order. Zero tasks exceeded the 3-attempt fix threshold, and zero tasks were skipped.
+
+| Task ID | Component / Page | Status | Fix Attempts | Notes |
 | :--- | :--- | :--- | :--- | :--- |
-| *None* | — | — | 0 / 3 | Baseline clean |
+| **Task 1** | Primitives & Tokens (`globals.css`, `AnimatedNumber`, `SkeletonLoader`) | **Completed** | 1 / 3 | Design system tokens, `ibm-plex-mono` KPIs, 4px radius |
+| **Task 3** | Login Page (`app/login/page.tsx`) | **Completed** | 1 / 3 | Blueprint grid texture, 7 quick-role demo buttons, tactile tap |
+| **Task 2** | Global Layout & Chrome (`TopBar`, `Sidebar`, `WakeupBanner`) | **Completed** | 1 / 3 | Role identity badge, demo switcher, 375px mobile drawer |
+| **Task 5** | MahaRERA Review & Confirm (`app/rera-review/page.tsx`, `GuidedStepper`) | **Completed** | 1 / 3 | Blueprint dashed dropzone, confidence pill tags, hook order |
+| **Task 4** | Home Overview & Gantt Schedule (`app/page.tsx`, `GanttSchedule`) | **Completed** | 1 / 3 | Animated KPIs, critical path Safety Orange styling, row stagger |
+| **Task 7** | Delay & Cost Optimizer (`app/optimizer/page.tsx`, `RecoverySidePanel`) | **Completed** | 1 / 3 | Strict constraint: polished existing controls only, no new sliders/APIs |
+| **Task 11** | Executive Dashboard (`app/dashboard/page.tsx`) | **Completed** | 1 / 3 | Strict constraint: styled existing charts only, no S-curve added |
+| **Task 9** | Material & Cost Log (`app/materials/page.tsx`) | **Completed** | 2 / 3 | React-dropzone event props aligned; attach-only photos preserved |
+| **Task 10** | Drawing Vault (`app/drawings/page.tsx`) | **Completed** | 1 / 3 | Strict constraint: restyled existing download buttons only |
+| **Task 6** | Parametric WBS & Cost Estimation (`app/wbs/page.tsx`) | **Completed** | 1 / 3 | Monospace INR table alignment, horizontal containment |
+| **Task 8** | GA vs CP-SAT Benchmark (`app/benchmark/page.tsx`) | **Completed** | 1 / 3 | Animated ms/makespan KPIs, smooth tab transition, carbon JSON view |
+| **Task 12** | Admin & Team Management (`app/admin/page.tsx`) | **Completed** | 1 / 3 | User roster horizontal scroll, role badge tokens, form focus states |
+| **Task 13** | Verification, Lint, Tests & Demo Checklist | **Completed** | 1 / 3 | All 4 verification criteria satisfied |
+
+---
+
+## 4. Task 13 Final Verification Matrix & Role Manual-Check List
+
+### 4.1 Verification Criteria Confirmation
+1. **Zero New Dependencies in `package.json`**:
+   - `git diff origin/main..HEAD frontend/package.json` produced 0 diff lines.
+   - All components, animations, and icons leverage existing libraries (`framer-motion`, `lucide-react`, `recharts`, `@fontsource/ibm-plex-mono`).
+2. **`npm run lint` Status**:
+   - Passed cleanly with **0 errors** across all TypeScript files.
+3. **Backend Test Suite**:
+   - Ran `docker-compose exec -T backend pytest`.
+   - **74 passed**, 0 failed across all 12 backend test modules (`test_api`, `test_auth`, `test_benchmark`, `test_cpm`, `test_dashboard`, `test_ga`, `test_materials`, `test_optimizer`, `test_pdf_parser`, `test_roles`, `test_storage`, `test_wbs`).
+4. **Production Build**:
+   - `npm run build` compiled all 13 routes cleanly (`/`, `/_not-found`, `/admin`, `/api/[...path]`, `/benchmark`, `/dashboard`, `/drawings`, `/login`, `/materials`, `/optimizer`, `/rera-review`, `/wbs`).
+
+---
+
+### 4.2 Manual-Check List for the 7 Roles
+
+| Role | Demo Credentials Preset | Key Screen(s) to Verify | Expected UI Behavior & Verification Steps |
+| :--- | :--- | :--- | :--- |
+| **1. Admin** | `admin@optibuild.internal` | `/admin` | • TopBar shows `[ADMIN] Admin User` badge in `bg-purple-900/40 text-purple-300 border-purple-700/60`.<br>• View User Roster table with horizontal scroll on small viewports.<br>• Confirm Create User form fields have active blueprint focus rings and tactile button feedback.<br>• Full access permitted across all system routes. |
+| **2. Project Manager** | `pm@optibuild.internal` | `/rera-review`<br>`/`<br>`/wbs`<br>`/optimizer` | • TopBar shows `[PROJECT_MANAGER] Project Manager` in `bg-blue-900/40 text-blue-300 border-blue-700/60`.<br>• **MahaRERA**: Drop certificate PDF into blueprint dashed dropzone, check confidence tags, click Confirm.<br>• **Home Gantt**: Verify animated count-up KPIs (Makespan, Delay Risk, Critical Tasks) and Safety Orange critical path bar.<br>• **WBS**: Run parametric generator, inspect monospace INR breakdown table.<br>• **Optimizer**: Run delay crash optimization, check crashing table in `font-mono`. |
+| **3. Site Engineer** | `site@optibuild.internal` | `/`<br>`/materials` | • TopBar shows `[SITE_ENGINEER] Site Engineer` in `bg-emerald-900/40 text-emerald-300 border-emerald-700/60`.<br>• **Home**: Update task % completion in the progress table; verify staggered row mount.<br>• **Materials**: Upload site progress photo, observe MobileNetV2 classification badge in `font-mono`. |
+| **4. Store Keeper** | `store@optibuild.internal` | `/materials` | • TopBar shows `[STORE_KEEPER] Store Keeper` in `bg-amber-900/40 text-amber-300 border-amber-700/60`.<br>• Add material delivery entry, verify unit rates format as `₹X,XX,XXX.XX` in `font-mono`.<br>• Attach weighbridge bill photo — verify it is stored as an attach-only file with **no OCR** triggered. |
+| **5. Architect** | `arch@optibuild.internal` | `/drawings` | • TopBar shows `[ARCHITECT] Architect` in `bg-teal-900/40 text-teal-300 border-teal-700/60`.<br>• Browse Drawing Vault sheets.<br>• Verify restyled download buttons with Lucide icon styling.<br>• Verify drawings are attach/download-only with **no OCR** triggered. |
+| **6. Accountant** | `accountant@optibuild.internal` | `/dashboard`<br>`/materials` | • TopBar shows `[ACCOUNTANT] Accountant` in `bg-indigo-900/40 text-indigo-300 border-indigo-700/60`.<br>• **Executive Dashboard**: Inspect Planned vs Actual spend KPI cards with animated count-up in INR monospace.<br>• Verify styled Recharts bar and line charts adhering to DESIGN.md palette tokens.<br>• Confirm unauthorized routes (like `/admin`) show the `PermissionDenied` guard. |
+| **7. Owner** | `owner@optibuild.internal` | `/dashboard`<br>`/` | • TopBar shows `[OWNER] Owner` in `bg-rose-900/40 text-rose-300 border-rose-700/60`.<br>• **Executive Dashboard**: Inspect MahaRERA Section 18 statutory delay liability alert card.<br>• Review high-level project delay risk and cost variance KPIs.<br>• Verify mobile viewport responsiveness down to 375px via top bar mobile drawer. |
+

@@ -70,22 +70,6 @@ export default function ReraReviewPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [userNotes, setUserNotes] = useState("")
 
-  // Permission check
-  if (!hasPermission(["project_manager", "admin"])) {
-    return (
-      <div className="flex flex-col min-h-screen">
-        <TopBar projectName="MahaRERA Project Registration" />
-        <main className="p-6">
-          <PermissionDenied
-            title="Project Manager Access Required"
-            description="Only Project Managers and Administrators are authorized to parse MahaRERA certificates and register projects."
-            requiredRoles={["project_manager", "admin"]}
-          />
-        </main>
-      </div>
-    )
-  }
-
   const onDrop = async (acceptedFiles: File[]) => {
     if (acceptedFiles.length === 0) return
     const file = acceptedFiles[0]
@@ -136,6 +120,22 @@ export default function ReraReviewPage() {
     accept: { "application/pdf": [".pdf"] },
     maxFiles: 1,
   })
+
+  // Permission check
+  if (!hasPermission(["project_manager", "admin"])) {
+    return (
+      <div className="flex flex-col min-h-screen">
+        <TopBar projectName="MahaRERA Project Registration" />
+        <main className="p-6">
+          <PermissionDenied
+            title="Project Manager Access Required"
+            description="Only Project Managers and Administrators are authorized to parse MahaRERA certificates and register projects."
+            requiredRoles={["project_manager", "admin"]}
+          />
+        </main>
+      </div>
+    )
+  }
 
   const handleStartManualEntry = () => {
     setFileName("manual_entry.pdf")
