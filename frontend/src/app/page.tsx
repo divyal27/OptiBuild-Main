@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react"
 import Link from "next/link"
+import { motion } from "framer-motion"
 import { getApiUrl } from "@/lib/api"
 import { TopBar } from "@/components/layout/TopBar"
 import { GanttSchedule, ScheduleTask } from "@/components/schedule/GanttSchedule"
@@ -9,6 +10,7 @@ import { RecoverySidePanel } from "@/components/optimizer/RecoverySidePanel"
 import { EmptyState } from "@/components/ui/EmptyState"
 import { SiteWeatherWidget } from "@/components/weather/SiteWeatherWidget"
 import { GuidedStepper } from "@/components/project/GuidedStepper"
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber"
 import { useAuth } from "@/context/AuthContext"
 import {
   Calendar,
@@ -228,7 +230,7 @@ export default function HomePage() {
             {hasPermission(["project_manager", "admin"]) && (
               <Link
                 href="/rera-review"
-                className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary text-primary-foreground font-mono text-xs hover:bg-primary/90 transition-colors border border-primary"
+                className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary text-primary-foreground font-mono text-xs hover:bg-primary/90 transition-colors border border-primary rounded-[4px] cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>New Project</span>
@@ -242,7 +244,7 @@ export default function HomePage() {
               return (
                 <div
                   key={proj.id}
-                  className={`border p-4 bg-card transition-all flex flex-col justify-between ${
+                  className={`border p-4 bg-card transition-all flex flex-col justify-between rounded-[4px] ${
                     isSelected
                       ? "border-primary shadow-sm ring-1 ring-primary/40"
                       : "border-border hover:border-border/80"
@@ -259,20 +261,20 @@ export default function HomePage() {
                         </p>
                       </div>
                       {isSelected && (
-                        <span className="shrink-0 px-2 py-0.5 bg-primary/10 text-primary border border-primary/30 text-[10px] font-mono font-bold uppercase">
+                        <span className="shrink-0 px-2 py-0.5 bg-primary/10 text-primary border border-primary/30 text-[10px] font-mono font-bold uppercase rounded-[2px]">
                           ACTIVE
                         </span>
                       )}
                     </div>
 
                     <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] font-mono">
-                      <div className="bg-muted/40 p-2 border border-border/50">
+                      <div className="bg-muted/40 p-2 border border-border/50 rounded-[2px]">
                         <span className="text-muted-foreground block text-[10px]">Target Date:</span>
                         <span className="font-semibold text-foreground">
                           {proj.proposed_completion_date || "Not Set"}
                         </span>
                       </div>
-                      <div className="bg-muted/40 p-2 border border-border/50">
+                      <div className="bg-muted/40 p-2 border border-border/50 rounded-[2px]">
                         <span className="text-muted-foreground block text-[10px]">Delay Exposure:</span>
                         <span
                           className={`font-semibold ${
@@ -287,7 +289,7 @@ export default function HomePage() {
                     {/* Status Badges for WBS / Schedule / Optimizer */}
                     <div className="mt-3 flex flex-wrap gap-1.5">
                       <span
-                        className={`text-[10px] font-mono px-1.5 py-0.5 border ${
+                        className={`text-[10px] font-mono px-1.5 py-0.5 border rounded-[2px] ${
                           proj.has_wbs
                             ? "bg-status-success/15 text-status-success border-status-success/30 font-medium"
                             : "bg-muted text-muted-foreground border-border"
@@ -297,7 +299,7 @@ export default function HomePage() {
                       </span>
 
                       <span
-                        className={`text-[10px] font-mono px-1.5 py-0.5 border ${
+                        className={`text-[10px] font-mono px-1.5 py-0.5 border rounded-[2px] ${
                           proj.has_schedule
                             ? "bg-status-success/15 text-status-success border-status-success/30 font-medium"
                             : "bg-muted text-muted-foreground border-border"
@@ -307,7 +309,7 @@ export default function HomePage() {
                       </span>
 
                       <span
-                        className={`text-[10px] font-mono px-1.5 py-0.5 border ${
+                        className={`text-[10px] font-mono px-1.5 py-0.5 border rounded-[2px] ${
                           proj.has_optimizer
                             ? "bg-status-success/15 text-status-success border-status-success/30 font-medium"
                             : "bg-muted text-muted-foreground border-border"
@@ -328,7 +330,7 @@ export default function HomePage() {
                       <button
                         type="button"
                         onClick={() => setActiveProjectId(proj.id)}
-                        className="px-3 py-1 bg-secondary text-foreground text-xs font-mono font-medium border border-border hover:bg-muted transition-colors"
+                        className="px-3 py-1 bg-secondary text-foreground text-xs font-mono font-medium border border-border hover:bg-muted transition-colors rounded-[2px] cursor-pointer"
                       >
                         Make Active
                       </button>
@@ -352,14 +354,17 @@ export default function HomePage() {
         </div>
 
         {error && (
-          <div className="flex items-center gap-2 p-3 border border-destructive/50 bg-destructive/10 text-destructive text-xs font-mono">
+          <div
+            role="alert"
+            className="flex items-center gap-2 p-3 border border-destructive/50 bg-destructive/10 text-destructive text-xs font-mono rounded-[4px]"
+          >
             <AlertTriangle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         {saveSuccessMsg && (
-          <div className="flex items-center gap-2 p-3 border border-status-success/50 bg-status-success/10 text-status-success text-xs font-mono">
+          <div className="flex items-center gap-2 p-3 border border-status-success/50 bg-status-success/10 text-status-success text-xs font-mono rounded-[4px]">
             <CheckCircle2 className="w-4 h-4 shrink-0" />
             <span>{saveSuccessMsg}</span>
           </div>
@@ -396,8 +401,13 @@ export default function HomePage() {
             <SiteWeatherWidget tasks={tasks} projectCity="Pune" />
 
             {/* Metric Ribbons */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="border border-border bg-card p-3">
+            <motion.div
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.22 }}
+              className="grid grid-cols-2 lg:grid-cols-4 gap-3"
+            >
+              <div className="border border-border bg-card p-3 rounded-[4px]">
                 <div className="flex items-center justify-between text-muted-foreground">
                   <span className="text-[10px] font-mono uppercase tracking-wider">
                     Makespan (Days)
@@ -405,17 +415,18 @@ export default function HomePage() {
                   <Calendar className="w-3.5 h-3.5 text-primary" />
                 </div>
                 <div className="mt-1 flex items-baseline gap-1.5">
-                  <span className="text-2xl font-mono font-bold text-foreground">
-                    {totalMakespan}
-                  </span>
-                  <span className="text-xs font-mono text-muted-foreground">days</span>
+                  <AnimatedNumber
+                    value={totalMakespan}
+                    className="text-2xl font-mono font-bold text-foreground"
+                    suffix=" days"
+                  />
                 </div>
-                <div className="mt-1 text-[10px] font-mono text-muted-foreground">
+                <div className="mt-1 text-[10px] font-mono text-muted-foreground truncate">
                   Target Handover: {activeProject?.proposed_completion_date || "Active"}
                 </div>
               </div>
 
-              <div className="border border-border bg-card p-3">
+              <div className="border border-border bg-card p-3 rounded-[4px]">
                 <div className="flex items-center justify-between text-muted-foreground">
                   <span className="text-[10px] font-mono uppercase tracking-wider">
                     Delay Risk
@@ -423,17 +434,19 @@ export default function HomePage() {
                   <AlertTriangle className="w-3.5 h-3.5 text-status-warning" />
                 </div>
                 <div className="mt-1 flex items-baseline gap-1.5">
-                  <span className="text-2xl font-mono font-bold text-status-warning">
-                    +{delayRiskDays}
-                  </span>
-                  <span className="text-xs font-mono text-muted-foreground">days</span>
+                  <AnimatedNumber
+                    value={delayRiskDays}
+                    className="text-2xl font-mono font-bold text-status-warning"
+                    prefix="+"
+                    suffix=" days"
+                  />
                 </div>
-                <div className="mt-1 text-[10px] font-mono text-muted-foreground">
+                <div className="mt-1 text-[10px] font-mono text-muted-foreground truncate">
                   MahaRERA Exposure: {activeProject?.delay_days ? "Contractual Risk" : "Stable"}
                 </div>
               </div>
 
-              <div className="border border-border bg-card p-3">
+              <div className="border border-border bg-card p-3 rounded-[4px]">
                 <div className="flex items-center justify-between text-muted-foreground">
                   <span className="text-[10px] font-mono uppercase tracking-wider">
                     Critical Path
@@ -441,9 +454,10 @@ export default function HomePage() {
                   <Activity className="w-3.5 h-3.5 text-primary" />
                 </div>
                 <div className="mt-1 flex items-baseline gap-1.5">
-                  <span className="text-2xl font-mono font-bold text-primary">
-                    {criticalTasksCount}
-                  </span>
+                  <AnimatedNumber
+                    value={criticalTasksCount}
+                    className="text-2xl font-mono font-bold text-primary"
+                  />
                   <span className="text-xs font-mono text-muted-foreground">
                     of {tasks.length} tasks
                   </span>
@@ -453,7 +467,7 @@ export default function HomePage() {
                 </div>
               </div>
 
-              <div className="border border-border bg-card p-3">
+              <div className="border border-border bg-card p-3 rounded-[4px]">
                 <div className="flex items-center justify-between text-muted-foreground">
                   <span className="text-[10px] font-mono uppercase tracking-wider">
                     Resource Constraints
@@ -464,39 +478,45 @@ export default function HomePage() {
                   <span className="text-2xl font-mono font-bold text-foreground">32</span>
                   <span className="text-xs font-mono text-muted-foreground">labor / 1 crane</span>
                 </div>
-                <div className="mt-1 text-[10px] font-mono text-muted-foreground">
+                <div className="mt-1 text-[10px] font-mono text-muted-foreground truncate">
                   RCPSP Genetic Algorithm Mode
                 </div>
               </div>
-            </div>
+            </motion.div>
 
             {/* Gantt Chart & Recovery Side Panel */}
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
-              <div className="lg:col-span-3 border border-border bg-card p-4 space-y-4">
+              <motion.div
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.22, delay: 0.05 }}
+                className="lg:col-span-3 border border-border bg-card p-4 space-y-4 rounded-[4px]"
+              >
                 <div className="flex items-center justify-between border-b border-border pb-3">
                   <div>
                     <h2 className="font-heading font-semibold text-sm text-foreground">
                       Construction Activity Gantt Timeline
                     </h2>
                     <p className="text-[11px] font-mono text-muted-foreground">
-                      Critical path activities marked in solid red • Dynamic serial schedule generation
+                      Critical path activities marked in safety orange • Dynamic serial schedule generation
                     </p>
                   </div>
                   {canRunSchedule && (
-                    <button
+                    <motion.button
                       type="button"
+                      whileTap={{ scale: 0.98 }}
                       disabled={isOptimizing}
                       onClick={handleRunOptimizer}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground font-mono text-xs font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground font-mono text-xs font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 rounded-[4px] cursor-pointer"
                     >
                       <RefreshCw className={`w-3.5 h-3.5 ${isOptimizing ? "animate-spin" : ""}`} />
                       <span>{isOptimizing ? "SOLVING GA..." : "RUN RCPSP GA SOLVER"}</span>
-                    </button>
+                    </motion.button>
                   )}
                 </div>
 
                 <GanttSchedule tasks={tasks} />
-              </div>
+              </motion.div>
 
               {/* Side Panel */}
               <div className="lg:col-span-1">
@@ -510,7 +530,12 @@ export default function HomePage() {
             </div>
 
             {/* Site Engineer Progress Tracking Table */}
-            <div className="border border-border bg-card p-4 space-y-3">
+            <motion.div
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.22, delay: 0.1 }}
+              className="border border-border bg-card p-4 space-y-3 rounded-[4px]"
+            >
               <div className="flex items-center justify-between border-b border-border pb-2">
                 <div>
                   <h3 className="font-heading font-semibold text-xs text-foreground flex items-center gap-1.5">
@@ -536,27 +561,33 @@ export default function HomePage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/60">
-                    {dbTasks.map((t) => {
+                    {dbTasks.map((t, idx) => {
                       const progress = t.progress_percent || 0
                       return (
-                        <tr key={t.id} className="hover:bg-muted/30">
+                        <motion.tr
+                          key={t.id}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ duration: 0.18, delay: idx * 0.02 }}
+                          className="hover:bg-muted/30"
+                        >
                           <td className="py-2 px-3 font-semibold text-primary">{t.id}</td>
                           <td className="py-2 px-3 text-foreground font-sans">
                             {t.name}
                             {t.is_critical && (
-                              <span className="ml-2 text-[9px] font-mono px-1 py-0.2 bg-destructive/15 text-destructive border border-destructive/30">
+                              <span className="ml-2 text-[9px] font-mono px-1 py-0.2 bg-destructive/15 text-destructive border border-destructive/30 rounded-[2px]">
                                 CRITICAL
                               </span>
                             )}
                           </td>
-                          <td className="py-2 px-3 text-muted-foreground">{t.duration}d</td>
+                          <td className="py-2 px-3 text-muted-foreground font-mono">{t.duration}d</td>
                           <td className="py-2 px-3">
                             <span
-                              className={`text-[10px] font-mono px-1.5 py-0.5 border ${
+                              className={`text-[10px] font-mono px-1.5 py-0.5 border rounded-[2px] ${
                                 progress === 100
-                                  ? "bg-status-success/15 text-status-success border-status-success/30"
+                                  ? "bg-status-success/15 text-status-success border-status-success/30 font-medium"
                                   : progress > 0
-                                  ? "bg-status-warning/15 text-status-warning border-status-warning/30"
+                                  ? "bg-status-warning/15 text-status-warning border-status-warning/30 font-medium"
                                   : "bg-muted text-muted-foreground border-border"
                               }`}
                             >
@@ -565,40 +596,41 @@ export default function HomePage() {
                           </td>
                           <td className="py-2 px-3">
                             <div className="flex items-center gap-2">
-                              <div className="w-24 bg-muted h-2 border border-border">
+                              <div className="w-24 bg-muted h-2 border border-border rounded-[1px] overflow-hidden">
                                 <div
-                                  className="bg-primary h-full transition-all"
+                                  className="bg-primary h-full transition-all duration-200"
                                   style={{ width: `${progress}%` }}
                                 />
                               </div>
-                              <span className="text-xs font-semibold">{progress}%</span>
+                              <span className="text-xs font-semibold font-mono">{progress}%</span>
                             </div>
                           </td>
                           {canEditProgress && (
                             <td className="py-2 px-3 text-right space-x-1">
                               {[25, 50, 75, 100].map((pct) => (
-                                <button
+                                <motion.button
                                   key={pct}
                                   type="button"
+                                  whileTap={{ scale: 0.95 }}
                                   onClick={() => handleUpdateTaskProgress(t.id, pct)}
-                                  className={`px-1.5 py-0.5 text-[10px] border transition-colors ${
+                                  className={`px-1.5 py-0.5 text-[10px] font-mono border rounded-[2px] transition-colors cursor-pointer ${
                                     progress === pct
                                       ? "bg-primary text-primary-foreground border-primary"
                                       : "bg-card hover:bg-muted text-muted-foreground border-border"
                                   }`}
                                 >
                                   {pct}%
-                                </button>
+                                </motion.button>
                               ))}
                             </td>
                           )}
-                        </tr>
+                        </motion.tr>
                       )
                     })}
                   </tbody>
                 </table>
               </div>
-            </div>
+            </motion.div>
           </>
         )}
       </main>
