@@ -14,6 +14,7 @@ else:
     load_dotenv()
 
 UPLOAD_DIR = Path(__file__).resolve().parent.parent.parent / "uploads"
+HTTP_413 = getattr(status, "HTTP_413_CONTENT_TOO_LARGE", 413)
 
 
 def sanitize_filename(filename: str) -> str:
@@ -49,7 +50,7 @@ def validate_file_content(category_type: str, content: bytes, filename: str):
     if category_type == "maharera":
         if size > 10 * 1024 * 1024:
             raise HTTPException(
-                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                status_code=HTTP_413,
                 detail=f"MahaRERA PDF exceeds maximum limit of 10 MB (received {size / (1024*1024):.2f} MB).",
             )
         if not content.startswith(b"%PDF-"):
@@ -61,7 +62,7 @@ def validate_file_content(category_type: str, content: bytes, filename: str):
     elif category_type in ("site_photo", "bill_photo"):
         if size > 5 * 1024 * 1024:
             raise HTTPException(
-                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                status_code=HTTP_413,
                 detail=f"Image exceeds maximum limit of 5 MB (received {size / (1024*1024):.2f} MB).",
             )
         is_jpeg = content.startswith(b"\xff\xd8\xff")
@@ -76,7 +77,7 @@ def validate_file_content(category_type: str, content: bytes, filename: str):
     elif category_type == "architect_drawing":
         if size > 20 * 1024 * 1024:
             raise HTTPException(
-                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                status_code=HTTP_413,
                 detail=f"Architectural drawing exceeds maximum limit of 20 MB (received {size / (1024*1024):.2f} MB).",
             )
         is_pdf = content.startswith(b"%PDF-")
@@ -125,7 +126,7 @@ class S3StorageManager:
         current_bytes = self.get_project_storage_bytes(project_id)
         if current_bytes + new_bytes > max_bytes:
             raise HTTPException(
-                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                status_code=HTTP_413,
                 detail=f"Project storage limit exceeded. Project '{project_id}' currently uses {current_bytes / (1024*1024):.2f} MB. "
                        f"Uploading this file would exceed the project quota of {max_mb:.0f} MB.",
             )

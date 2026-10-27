@@ -387,22 +387,35 @@ def run_and_save_optimizer(
 
     recovery_days = target_recovery_days if target_recovery_days is not None else (project.delay_days or 14)
 
+    raw_mclr = project.sbi_mclr_rate if project.sbi_mclr_rate is not None else 8.85
+    sbi_mclr = raw_mclr * 100.0 if raw_mclr < 1.0 else raw_mclr
+
+    raw_spread = project.rera_spread if project.rera_spread is not None else 2.0
+    rera_spread = raw_spread * 100.0 if raw_spread < 1.0 else raw_spread
+
+    allottee_inv = project.total_allottee_investment
+    if not allottee_inv:
+        if project.total_project_cost:
+            allottee_inv = project.total_project_cost * 0.70
+        else:
+            allottee_inv = 10000000.0
+
     rera_params = RERAPenaltyParams(
-        total_allottee_investment=project.total_allottee_investment or (project.total_project_cost * 0.70) or 10000000.0,
-        sbi_mclr_rate=project.sbi_mclr_rate or 0.0885,
-        rera_spread=project.rera_spread or 0.02,
+        total_allottee_investment=allottee_inv,
+        sbi_mclr_rate=sbi_mclr,
+        rera_spread=rera_spread,
         delay_days=recovery_days,
     )
 
     crashable_tasks = [
         CrashableTaskItem(
-            task_id=t.id,
-            task_name=t.name,
+            id=t.id,
+            name=t.name,
             normal_duration=t.duration,
             crash_duration=t.crash_duration or max(1, int(t.duration * 0.65)),
-            normal_cost=t.normal_cost,
-            crash_cost=t.crash_cost or (t.normal_cost * 1.35),
-            is_critical=t.is_critical,
+            normal_cost=t.normal_cost or 0.0,
+            crash_cost=t.crash_cost or ((t.normal_cost or 0.0) * 1.35),
+            predecessors=t.predecessors or [],
         )
         for t in db_tasks
     ]

@@ -139,21 +139,23 @@ class MahaRERAPDFParser:
         # 3. Promoter Name
         promoter_name = None
         prom_match = re.search(
-            r"(?:Promoter\s+Name|Developer|Promoter/Developer|Company\s+Name)\s*[:\-]?\s*([^\n\r]+?)(?:\s+PAN|\s+Number|[\n\r]|$)",
+            r"(?:Promoter\s+Name|Developer|Promoter/Developer|Company\s+Name)\s*[:\-]?\s*([^\n\r]+?)(?:\s+(?:PAN\s+Number|PAN\b|Registration\s+No|Certificate\s+No)|[\n\r]|$)",
             text,
             re.IGNORECASE,
         )
-        if prom_match and len(prom_match.group(1).strip()) > 2 and "INFRA" not in prom_match.group(1):
-            promoter_name = prom_match.group(1).strip()
-        else:
+        if prom_match and len(prom_match.group(1).strip()) > 2:
+            candidate = prom_match.group(1).strip()
+            if not re.match(r"^(?:Information|Infrastructure|Details|Status)$", candidate, re.IGNORECASE):
+                promoter_name = candidate
+        if not promoter_name:
             org_match = re.search(
-                r"Organization\s*\n\s*Name\s+([A-Z0-9\s]+?)(?:\s+PAN|\s+Number|\n|$)",
+                r"Organization\s*\n\s*Name\s+([A-Z0-9\s.,&'-]+?)(?:\s+(?:PAN\s+Number|PAN\b|Registration\s+No)|[\n\r]|$)",
                 text,
                 re.IGNORECASE,
             )
-            if org_match:
+            if org_match and len(org_match.group(1).strip()) > 2:
                 promoter_name = org_match.group(1).strip()
-                vent_match = re.search(r"PAN Number\s+[A-Z0-9]+\s*\n\s*([A-Za-z0-9\s]+?)(?:\s+Organization\s+Type|\n|$)", text, re.IGNORECASE)
+                vent_match = re.search(r"PAN Number\s+[A-Z0-9]+\s*\n\s*([A-Za-z0-9\s.,&'-]+?)(?:\s+Organization\s+Type|[\n\r]|$)", text, re.IGNORECASE)
                 if vent_match and len(vent_match.group(1).strip()) > 0:
                     promoter_name = f"{promoter_name} {vent_match.group(1).strip()}"
         confidence["promoter_name"] = "HIGH" if promoter_name else "NOT_FOUND"
@@ -219,9 +221,6 @@ class MahaRERAPDFParser:
             if slabs:
                 floors = max(slabs)
                 confidence["number_of_floors"] = "HIGH"
-            if row_basements:
-                basements = max(row_basements)
-                confidence["number_of_basements"] = "HIGH"
             else:
                 # Check G+N pattern
                 g_plus = re.search(r"G\s*\+\s*([0-9]+)", text, re.IGNORECASE)
@@ -230,6 +229,10 @@ class MahaRERAPDFParser:
                     confidence["number_of_floors"] = "HIGH"
                 else:
                     confidence["number_of_floors"] = "NOT_FOUND"
+
+            if row_basements:
+                basements = max(row_basements)
+                confidence["number_of_basements"] = "HIGH"
 
         # 7. Basements Count (if not found in rows)
         if basements is None:

@@ -53,7 +53,7 @@ class DelayRecoveryOptimizer:
         cost_slopes: Dict[str, float] = {}
         for t in tasks:
             crashable_span = t.normal_duration - t.crash_duration
-            if crashable_span > 0 and t.crash_cost > t.normal_cost:
+            if crashable_span > 0 and t.crash_cost >= t.normal_cost:
                 cost_slopes[t.id] = (t.crash_cost - t.normal_cost) / crashable_span
             else:
                 cost_slopes[t.id] = float("inf")
