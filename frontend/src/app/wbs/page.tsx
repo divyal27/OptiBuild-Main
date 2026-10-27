@@ -21,6 +21,8 @@ import {
   AlertTriangle,
   Loader2,
 } from "lucide-react"
+import { motion } from "framer-motion"
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber"
 
 interface WbsItem {
   wbs_code: string
@@ -178,9 +180,14 @@ export default function WbsPage() {
         delayRiskDays={activeProject?.delay_days || 0}
       />
 
-      <main className="p-4 md:p-6 space-y-6">
+      <main className="p-4 md:p-6 space-y-6 max-w-7xl">
         {/* Header Summary */}
-        <div className="border border-border bg-card p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2 }}
+          className="border border-border bg-card p-4 rounded-[4px] flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm"
+        >
           <div>
             <h2 className="font-heading font-semibold text-base text-foreground flex items-center gap-2">
               <FileSpreadsheet className="w-4 h-4 text-primary" />
@@ -195,32 +202,37 @@ export default function WbsPage() {
             <div className="flex items-center gap-3">
               <Link
                 href="/"
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground font-mono text-xs font-medium hover:bg-primary/90 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground font-mono text-xs font-medium hover:bg-primary/90 transition-colors rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary active:scale-[0.98]"
               >
                 <span>Proceed to Gantt Schedule</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
           )}
-        </div>
+        </motion.div>
 
         {error && (
-          <div className="flex items-center gap-2 p-3 border border-destructive/50 bg-destructive/10 text-destructive text-xs font-mono">
+          <div className="flex items-center gap-2 p-3 border border-destructive/50 bg-destructive/10 text-destructive text-xs font-mono rounded-[4px]">
             <AlertTriangle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         {/* Building Parameters Input Form */}
-        <div className="border border-border bg-card p-4 space-y-4">
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2, delay: 0.05 }}
+          className="border border-border bg-card p-5 space-y-4 rounded-[4px] shadow-sm"
+        >
           <div className="text-xs font-mono uppercase text-muted-foreground tracking-wider font-semibold border-b border-border pb-2 flex items-center justify-between">
             <span>Building Parameters & Cost Base</span>
-            <span className="text-[10px] text-primary">{activeProject?.name}</span>
+            <span className="text-[10px] text-primary font-bold">{activeProject?.name}</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
-              <label className="block text-xs font-mono text-muted-foreground mb-1">
+              <label className="block text-xs font-mono text-muted-foreground mb-1 font-semibold">
                 Built-Up Area (sq.ft)
               </label>
               <input
@@ -228,12 +240,12 @@ export default function WbsPage() {
                 disabled={!canEdit || isGenerating}
                 value={builtUpArea}
                 onChange={(e) => setBuiltUpArea(parseFloat(e.target.value) || 0)}
-                className="w-full px-3 py-1.5 text-xs font-mono bg-background border border-border text-foreground focus:outline-none focus:border-primary disabled:opacity-60"
+                className="w-full px-3 py-1.5 text-xs font-mono bg-background border border-border text-foreground rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary disabled:opacity-60 transition-colors"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-mono text-muted-foreground mb-1">
+              <label className="block text-xs font-mono text-muted-foreground mb-1 font-semibold">
                 Floors (G + Floors)
               </label>
               <input
@@ -241,12 +253,12 @@ export default function WbsPage() {
                 disabled={!canEdit || isGenerating}
                 value={numberOfFloors}
                 onChange={(e) => setNumberOfFloors(parseInt(e.target.value, 10) || 1)}
-                className="w-full px-3 py-1.5 text-xs font-mono bg-background border border-border text-foreground focus:outline-none focus:border-primary disabled:opacity-60"
+                className="w-full px-3 py-1.5 text-xs font-mono bg-background border border-border text-foreground rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary disabled:opacity-60 transition-colors"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-mono text-muted-foreground mb-1">
+              <label className="block text-xs font-mono text-muted-foreground mb-1 font-semibold">
                 Basements Count
               </label>
               <input
@@ -254,12 +266,12 @@ export default function WbsPage() {
                 disabled={!canEdit || isGenerating}
                 value={numberOfBasements}
                 onChange={(e) => setNumberOfBasements(parseInt(e.target.value, 10) || 0)}
-                className="w-full px-3 py-1.5 text-xs font-mono bg-background border border-border text-foreground focus:outline-none focus:border-primary disabled:opacity-60"
+                className="w-full px-3 py-1.5 text-xs font-mono bg-background border border-border text-foreground rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary disabled:opacity-60 transition-colors"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-mono text-muted-foreground mb-1">
+              <label className="block text-xs font-mono text-muted-foreground mb-1 font-semibold">
                 Base Rate (₹ / sq.ft)
               </label>
               <input
@@ -267,18 +279,19 @@ export default function WbsPage() {
                 disabled={!canEdit || isGenerating}
                 value={baseRate}
                 onChange={(e) => setBaseRate(parseFloat(e.target.value) || 0)}
-                className="w-full px-3 py-1.5 text-xs font-mono bg-background border border-border text-foreground focus:outline-none focus:border-primary disabled:opacity-60"
+                className="w-full px-3 py-1.5 text-xs font-mono bg-background border border-border text-foreground rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary disabled:opacity-60 transition-colors"
               />
             </div>
           </div>
 
           {canEdit && (
             <div className="flex justify-end pt-2">
-              <button
+              <motion.button
+                whileTap={{ scale: 0.98 }}
                 type="button"
                 disabled={isGenerating}
                 onClick={handleGenerateWbs}
-                className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground font-mono text-xs font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground font-mono text-xs font-semibold hover:bg-primary/90 transition-colors rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
               >
                 {isGenerating ? (
                   <>
@@ -291,10 +304,10 @@ export default function WbsPage() {
                     <span>{wbsData ? "RE-GENERATE PARAMETRIC WBS" : "GENERATE PARAMETRIC WBS"}</span>
                   </>
                 )}
-              </button>
+              </motion.button>
             </div>
           )}
-        </div>
+        </motion.div>
 
         {/* WBS Output Display */}
         {isLoading ? (
@@ -310,35 +323,46 @@ export default function WbsPage() {
             onAction={canEdit ? handleGenerateWbs : undefined}
           />
         ) : (
-          <div className="space-y-6">
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2, delay: 0.1 }}
+            className="space-y-6"
+          >
             {/* KPI Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="p-4 border border-border bg-card">
-                <div className="text-[10px] font-mono uppercase text-muted-foreground">
+              <div className="p-4 border border-border bg-card rounded-[4px] shadow-sm">
+                <div className="text-[10px] font-mono uppercase text-muted-foreground font-semibold">
                   Total Estimated Project Cost
                 </div>
                 <div className="text-xl font-bold font-mono text-foreground mt-1">
-                  {formatINR(wbsData.total_estimated_cost)}
+                  <AnimatedNumber
+                    value={wbsData.total_estimated_cost}
+                    formatter={(v) => formatINR(v)}
+                  />
                 </div>
                 <div className="text-[10px] font-mono text-muted-foreground mt-0.5">
                   @ ₹{wbsData.base_rate_per_sqft} / sq.ft • {wbsData.built_up_area_sqft.toLocaleString()} sq.ft
                 </div>
               </div>
 
-              <div className="p-4 border border-border bg-card">
-                <div className="text-[10px] font-mono uppercase text-muted-foreground">
+              <div className="p-4 border border-border bg-card rounded-[4px] shadow-sm">
+                <div className="text-[10px] font-mono uppercase text-muted-foreground font-semibold">
                   Unconstrained CPM Makespan
                 </div>
                 <div className="text-xl font-bold font-mono text-primary mt-1">
-                  {wbsData.cpm_makespan_days} Days
+                  <AnimatedNumber
+                    value={wbsData.cpm_makespan_days}
+                    formatter={(v) => `${v} Days`}
+                  />
                 </div>
                 <div className="text-[10px] font-mono text-muted-foreground mt-0.5">
                   Critical path sequence calculated
                 </div>
               </div>
 
-              <div className="p-4 border border-border bg-card">
-                <div className="text-[10px] font-mono uppercase text-muted-foreground">
+              <div className="p-4 border border-border bg-card rounded-[4px] shadow-sm">
+                <div className="text-[10px] font-mono uppercase text-muted-foreground font-semibold">
                   WBS Breakdown Packages
                 </div>
                 <div className="text-xl font-bold font-mono text-foreground mt-1">
@@ -351,15 +375,15 @@ export default function WbsPage() {
             </div>
 
             {/* Packages Table */}
-            <div className="border border-border bg-card divide-y divide-border">
+            <div className="border border-border bg-card rounded-[4px] shadow-sm divide-y divide-border overflow-hidden">
               {wbsData.categories.map((cat, idx) => (
                 <div key={idx} className="p-4 space-y-3">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
                     <div className="flex items-center gap-2">
-                      <span className="font-heading font-semibold text-xs text-foreground">
+                      <span className="font-heading font-semibold text-xs text-foreground uppercase tracking-wider">
                         {cat.category_name}
                       </span>
-                      <span className="text-[10px] font-mono px-1.5 py-0.2 bg-secondary border border-border text-muted-foreground">
+                      <span className="text-[10px] font-mono px-2 py-0.5 bg-secondary border border-border text-muted-foreground rounded-[4px] font-medium">
                         {cat.total_percentage}% Allocation
                       </span>
                     </div>
@@ -368,29 +392,29 @@ export default function WbsPage() {
                     </div>
                   </div>
 
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs font-mono">
+                  <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+                    <table className="w-full min-w-[580px] text-left text-xs font-mono border-collapse">
                       <thead className="bg-muted/40 text-[10px] uppercase text-muted-foreground border-y border-border">
                         <tr>
-                          <th className="py-1.5 px-3">WBS Code</th>
-                          <th className="py-1.5 px-3">Activity Description</th>
-                          <th className="py-1.5 px-3">Duration</th>
-                          <th className="py-1.5 px-3">Predecessors</th>
-                          <th className="py-1.5 px-3">Share</th>
-                          <th className="py-1.5 px-3 text-right">Estimated Cost</th>
+                          <th className="py-2 px-3 font-semibold">WBS Code</th>
+                          <th className="py-2 px-3 font-semibold">Activity Description</th>
+                          <th className="py-2 px-3 font-semibold">Duration</th>
+                          <th className="py-2 px-3 font-semibold">Predecessors</th>
+                          <th className="py-2 px-3 font-semibold">Share</th>
+                          <th className="py-2 px-3 text-right font-semibold">Estimated Cost</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border/60">
                         {cat.items.map((item) => (
-                          <tr key={item.wbs_code} className="hover:bg-muted/30">
-                            <td className="py-2 px-3 font-semibold text-primary">{item.wbs_code}</td>
-                            <td className="py-2 px-3 text-foreground font-sans">{item.title}</td>
-                            <td className="py-2 px-3 text-muted-foreground">{item.duration_days}d</td>
-                            <td className="py-2 px-3 text-muted-foreground">
+                          <tr key={item.wbs_code} className="hover:bg-muted/30 transition-colors">
+                            <td className="py-2.5 px-3 font-semibold text-primary">{item.wbs_code}</td>
+                            <td className="py-2.5 px-3 text-foreground font-sans font-medium">{item.title}</td>
+                            <td className="py-2.5 px-3 text-muted-foreground">{item.duration_days}d</td>
+                            <td className="py-2.5 px-3 text-muted-foreground">
                               {item.predecessors.length > 0 ? item.predecessors.join(", ") : "—"}
                             </td>
-                            <td className="py-2 px-3 text-muted-foreground">{item.budget_percentage}%</td>
-                            <td className="py-2 px-3 text-right font-medium text-foreground">
+                            <td className="py-2.5 px-3 text-muted-foreground">{item.budget_percentage}%</td>
+                            <td className="py-2.5 px-3 text-right font-semibold text-foreground">
                               {formatINR(item.estimated_cost)}
                             </td>
                           </tr>
@@ -401,7 +425,7 @@ export default function WbsPage() {
                 </div>
               ))}
             </div>
-          </div>
+          </motion.div>
         )}
       </main>
     </div>
