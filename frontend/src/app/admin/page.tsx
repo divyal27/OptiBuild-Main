@@ -20,6 +20,7 @@ import {
   KeyRound,
   ShieldCheck,
 } from "lucide-react"
+import { motion } from "framer-motion"
 
 interface ProjectMemberInfo {
   id: string
@@ -226,9 +227,14 @@ export default function AdminPage() {
     <div className="flex flex-col min-h-screen">
       <TopBar projectName="User & Organization Administration" delayRiskDays={0} />
 
-      <main className="p-4 md:p-6 space-y-6">
+      <main className="p-4 md:p-6 space-y-6 max-w-7xl">
         {/* Admin Overview Header */}
-        <div className="border border-border bg-card p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2 }}
+          className="border border-border bg-card p-4 rounded-[4px] shadow-sm"
+        >
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <div className="flex items-center gap-2">
@@ -243,22 +249,22 @@ export default function AdminPage() {
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
-              <span className="text-xs font-mono px-2.5 py-1 bg-secondary border border-border text-foreground">
+              <span className="text-xs font-mono px-2.5 py-1 bg-secondary border border-border text-foreground rounded-[4px] font-medium">
                 Organization: OptiBuild Infrastructure Corp
               </span>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {error && (
-          <div className="p-3 bg-destructive/10 border border-destructive text-destructive font-mono text-xs flex items-center gap-2">
+          <div className="p-3 bg-destructive/10 border border-destructive text-destructive font-mono text-xs flex items-center gap-2 rounded-[4px]">
             <AlertTriangle className="w-4 h-4 shrink-0" />
             {error}
           </div>
         )}
 
         {successMsg && (
-          <div className="p-3 bg-status-success/10 border border-status-success text-status-success font-mono text-xs flex items-center gap-2">
+          <div className="p-3 bg-status-success/10 border border-status-success text-status-success font-mono text-xs flex items-center gap-2 rounded-[4px]">
             <ShieldCheck className="w-4 h-4 shrink-0" />
             {successMsg}
           </div>
@@ -266,7 +272,12 @@ export default function AdminPage() {
 
         {/* Create User Form (Admin Only) */}
         {hasPermission(["admin"]) && (
-          <div className="border border-border bg-card p-4">
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2, delay: 0.05 }}
+            className="border border-border bg-card p-5 rounded-[4px] shadow-sm"
+          >
             <h3 className="font-heading font-semibold text-xs text-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
               <UserPlus className="w-3.5 h-3.5 text-primary" />
               Register New User
@@ -274,7 +285,7 @@ export default function AdminPage() {
 
             <form onSubmit={handleCreateUser} className="grid grid-cols-1 sm:grid-cols-5 gap-3 items-end">
               <div>
-                <label className="text-[10px] font-mono text-muted-foreground uppercase block mb-1">
+                <label className="text-[10px] font-mono text-muted-foreground uppercase block mb-1 font-semibold">
                   Full Name
                 </label>
                 <input
@@ -283,12 +294,12 @@ export default function AdminPage() {
                   placeholder="e.g. Ramesh Kumar"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
-                  className="w-full text-xs font-mono bg-background border border-border p-2 text-foreground"
+                  className="w-full text-xs font-mono bg-background border border-border p-2 text-foreground rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-colors"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] font-mono text-muted-foreground uppercase block mb-1">
+                <label className="text-[10px] font-mono text-muted-foreground uppercase block mb-1 font-semibold">
                   Email Address
                 </label>
                 <input
@@ -297,12 +308,12 @@ export default function AdminPage() {
                   placeholder="ramesh@optibuild.io"
                   value={newEmail}
                   onChange={(e) => setNewEmail(e.target.value)}
-                  className="w-full text-xs font-mono bg-background border border-border p-2 text-foreground"
+                  className="w-full text-xs font-mono bg-background border border-border p-2 text-foreground rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-colors"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] font-mono text-muted-foreground uppercase block mb-1">
+                <label className="text-[10px] font-mono text-muted-foreground uppercase block mb-1 font-semibold">
                   Initial Password
                 </label>
                 <input
@@ -311,18 +322,18 @@ export default function AdminPage() {
                   placeholder="••••••••"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full text-xs font-mono bg-background border border-border p-2 text-foreground"
+                  className="w-full text-xs font-mono bg-background border border-border p-2 text-foreground rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-colors"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] font-mono text-muted-foreground uppercase block mb-1">
+                <label className="text-[10px] font-mono text-muted-foreground uppercase block mb-1 font-semibold">
                   Global Role
                 </label>
                 <select
                   value={newRole}
                   onChange={(e) => setNewRole(e.target.value)}
-                  className="w-full text-xs font-mono bg-background border border-border p-2 text-foreground"
+                  className="w-full text-xs font-mono bg-background border border-border p-2 text-foreground rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-colors"
                 >
                   {ROLES.map((r) => (
                     <option key={r.value} value={r.value}>
@@ -333,10 +344,11 @@ export default function AdminPage() {
               </div>
 
               <div>
-                <button
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
                   type="submit"
                   disabled={isCreatingUser || !newName.trim() || !newEmail.trim() || !newPassword}
-                  className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-primary text-primary-foreground font-mono text-xs font-medium hover:bg-primary/90 transition-colors border border-primary disabled:opacity-50"
+                  className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-primary text-primary-foreground font-mono text-xs font-medium hover:bg-primary/90 transition-colors border border-primary rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
                 >
                   {isCreatingUser ? (
                     <>
@@ -349,14 +361,19 @@ export default function AdminPage() {
                       Create User
                     </>
                   )}
-                </button>
+                </motion.button>
               </div>
             </form>
-          </div>
+          </motion.div>
         )}
 
         {/* User Roster Table */}
-        <div className="border border-border bg-card">
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2, delay: 0.1 }}
+          className="border border-border bg-card rounded-[4px] shadow-sm overflow-hidden"
+        >
           <div className="p-3 border-b border-border bg-muted/30 flex items-center justify-between">
             <span className="font-heading font-semibold text-xs text-foreground uppercase tracking-wider flex items-center gap-2">
               <Users className="w-3.5 h-3.5 text-primary" />
@@ -384,30 +401,41 @@ export default function AdminPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {usersList.map((u) => (
-                    <tr key={u.id} className="hover:bg-muted/30 transition-colors">
+                  {usersList.map((u, idx) => (
+                    <motion.tr
+                      key={u.id}
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.15, delay: idx * 0.02 }}
+                      className="hover:bg-muted/30 transition-colors"
+                    >
                       <td className="p-3 font-bold text-foreground">{u.full_name}</td>
                       <td className="p-3 text-muted-foreground">{u.email}</td>
                       <td className="p-3">
-                        <span className="text-[10px] font-mono px-2 py-0.5 bg-secondary border border-border text-foreground font-semibold uppercase">
+                        <span className="text-[10px] font-mono px-2 py-0.5 bg-secondary border border-border text-foreground font-semibold uppercase rounded-[4px]">
                           {u.role.replace("_", " ")}
                         </span>
                       </td>
                       <td className="p-3">
-                        <span className="text-[10px] font-mono px-2 py-0.5 bg-status-success/15 border border-status-success/30 text-status-success font-medium">
+                        <span className="text-[10px] font-mono px-2 py-0.5 bg-status-success/15 border border-status-success/30 text-status-success font-medium rounded-[4px]">
                           Active
                         </span>
                       </td>
-                    </tr>
+                    </motion.tr>
                   ))}
                 </tbody>
               </table>
             </div>
           )}
-        </div>
+        </motion.div>
 
         {/* Project Membership Assignment Section */}
-        <div className="border border-border bg-card p-4 space-y-4">
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2, delay: 0.15 }}
+          className="border border-border bg-card p-5 space-y-4 rounded-[4px] shadow-sm"
+        >
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border">
             <div>
               <h3 className="font-heading font-semibold text-xs text-foreground uppercase tracking-wider flex items-center gap-2">
@@ -421,11 +449,11 @@ export default function AdminPage() {
 
             {projects.length > 0 && (
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-mono text-muted-foreground uppercase">Project:</span>
+                <span className="text-[10px] font-mono text-muted-foreground uppercase font-semibold">Project:</span>
                 <select
                   value={selectedProjectId}
                   onChange={(e) => setSelectedProjectId(e.target.value)}
-                  className="text-xs font-mono bg-background border border-border p-1.5 text-foreground"
+                  className="text-xs font-mono bg-background border border-border p-1.5 text-foreground rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
                 >
                   {projects.map((p) => (
                     <option key={p.id} value={p.id}>
@@ -446,13 +474,13 @@ export default function AdminPage() {
               {/* Assignment Form */}
               <form onSubmit={handleAssignMember} className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
                 <div>
-                  <label className="text-[10px] font-mono text-muted-foreground uppercase block mb-1">
+                  <label className="text-[10px] font-mono text-muted-foreground uppercase block mb-1 font-semibold">
                     Select User
                   </label>
                   <select
                     value={assignUserId}
                     onChange={(e) => setAssignUserId(e.target.value)}
-                    className="w-full text-xs font-mono bg-background border border-border p-2 text-foreground"
+                    className="w-full text-xs font-mono bg-background border border-border p-2 text-foreground rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-colors"
                   >
                     {usersList.map((u) => (
                       <option key={u.id} value={u.id}>
@@ -463,13 +491,13 @@ export default function AdminPage() {
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-mono text-muted-foreground uppercase block mb-1">
+                  <label className="text-[10px] font-mono text-muted-foreground uppercase block mb-1 font-semibold">
                     Assigned Project Role
                   </label>
                   <select
                     value={assignRole}
                     onChange={(e) => setAssignRole(e.target.value)}
-                    className="w-full text-xs font-mono bg-background border border-border p-2 text-foreground"
+                    className="w-full text-xs font-mono bg-background border border-border p-2 text-foreground rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-colors"
                   >
                     {ROLES.map((r) => (
                       <option key={r.value} value={r.value}>
@@ -480,10 +508,11 @@ export default function AdminPage() {
                 </div>
 
                 <div>
-                  <button
+                  <motion.button
+                    whileTap={{ scale: 0.98 }}
                     type="submit"
                     disabled={isAssigningMember || !selectedProjectId || !assignUserId}
-                    className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-primary text-primary-foreground font-mono text-xs font-medium hover:bg-primary/90 transition-colors border border-primary disabled:opacity-50"
+                    className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-primary text-primary-foreground font-mono text-xs font-medium hover:bg-primary/90 transition-colors border border-primary rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
                   >
                     {isAssigningMember ? (
                       <>
@@ -496,7 +525,7 @@ export default function AdminPage() {
                         Assign Member to Project
                       </>
                     )}
-                  </button>
+                  </motion.button>
                 </div>
               </form>
 
@@ -512,11 +541,11 @@ export default function AdminPage() {
                     Loading members...
                   </div>
                 ) : projectMembers.length === 0 ? (
-                  <div className="p-4 border border-dashed border-border text-center text-xs font-mono text-muted-foreground">
+                  <div className="p-4 border border-dashed border-border text-center text-xs font-mono text-muted-foreground rounded-[4px]">
                     No users assigned to this project yet. Use the form above to assign members.
                   </div>
                 ) : (
-                  <div className="border border-border overflow-x-auto">
+                  <div className="border border-border rounded-[4px] overflow-hidden overflow-x-auto shadow-sm">
                     <table className="w-full text-left text-xs font-mono border-collapse">
                       <thead>
                         <tr className="border-b border-border bg-muted/40 text-[10px] text-muted-foreground uppercase">
@@ -527,11 +556,11 @@ export default function AdminPage() {
                       </thead>
                       <tbody className="divide-y divide-border">
                         {projectMembers.map((m) => (
-                          <tr key={m.id} className="hover:bg-muted/30">
+                          <tr key={m.id} className="hover:bg-muted/30 transition-colors">
                             <td className="p-2.5 font-bold text-foreground">{m.user_name || "—"}</td>
                             <td className="p-2.5 text-muted-foreground">{m.user_email || "—"}</td>
                             <td className="p-2.5">
-                              <span className="text-[10px] font-mono px-2 py-0.5 bg-primary/10 border border-primary/20 text-primary font-semibold uppercase">
+                              <span className="text-[10px] font-mono px-2 py-0.5 bg-primary/10 border border-primary/20 text-primary font-semibold uppercase rounded-[4px]">
                                 {m.role.replace("_", " ")}
                               </span>
                             </td>
@@ -544,7 +573,7 @@ export default function AdminPage() {
               </div>
             </>
           )}
-        </div>
+        </motion.div>
       </main>
     </div>
   )
