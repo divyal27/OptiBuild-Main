@@ -36,6 +36,8 @@ import {
   Loader2,
   Calendar,
 } from "lucide-react"
+import { motion } from "framer-motion"
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber"
 
 interface CategoryMetric {
   category_name: string
@@ -182,9 +184,14 @@ export default function DashboardPage() {
         delayRiskDays={delayDays}
       />
 
-      <main className="p-4 md:p-6 space-y-6">
+      <main className="p-4 md:p-6 space-y-6 max-w-7xl">
         {/* Top Header */}
-        <div className="border border-border bg-card p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2 }}
+          className="border border-border bg-card p-4 rounded-[4px] flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm"
+        >
           <div>
             <h2 className="font-heading font-semibold text-base text-foreground flex items-center gap-2">
               <PieIcon className="w-4 h-4 text-primary" />
@@ -199,28 +206,29 @@ export default function DashboardPage() {
 
           <div className="flex items-center gap-3">
             {canRecalibrate && (
-              <button
+              <motion.button
+                whileTap={{ scale: 0.98 }}
                 type="button"
                 disabled={isRecalibrating}
                 onClick={handleRecalibrate}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-secondary border border-border text-foreground hover:bg-muted font-mono text-xs font-medium transition-colors disabled:opacity-50"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-secondary border border-border text-foreground hover:bg-muted font-mono text-xs font-medium transition-colors rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isRecalibrating ? "animate-spin" : ""}`} />
                 <span>{isRecalibrating ? "RECALIBRATING..." : "RECALIBRATE FROM INVOICES"}</span>
-              </button>
+              </motion.button>
             )}
 
             <Link
               href="/materials"
-              className="px-3 py-1.5 bg-primary text-primary-foreground font-mono text-xs font-medium hover:bg-primary/90 transition-colors"
+              className="px-3 py-1.5 bg-primary text-primary-foreground font-mono text-xs font-medium hover:bg-primary/90 transition-colors rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary"
             >
               View Material Logs
             </Link>
           </div>
-        </div>
+        </motion.div>
 
         {error && (
-          <div className="flex items-center gap-2 p-3 border border-destructive/50 bg-destructive/10 text-destructive text-xs font-mono">
+          <div className="flex items-center gap-2 p-3 border border-destructive/50 bg-destructive/10 text-destructive text-xs font-mono rounded-[4px]">
             <AlertTriangle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>
@@ -228,13 +236,18 @@ export default function DashboardPage() {
 
         {/* Owner / Executive Delay & Statutory Penalty Alert */}
         {(isOwner || delayDays > 0) && (
-          <div className="border border-destructive/40 bg-destructive/5 p-4 space-y-2">
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2, delay: 0.05 }}
+            className="border border-destructive/40 bg-destructive/5 p-4 space-y-2 rounded-[4px] shadow-sm"
+          >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-destructive font-heading font-semibold text-xs tracking-wider uppercase">
                 <AlertTriangle className="w-4 h-4 shrink-0" />
                 <span>Statutory MahaRERA Delay Exposure Alert</span>
               </div>
-              <span className="text-[10px] font-mono px-2 py-0.5 bg-destructive/15 text-destructive border border-destructive/30">
+              <span className="text-[10px] font-mono px-2 py-0.5 bg-destructive/15 text-destructive border border-destructive/30 rounded-[4px] font-semibold">
                 RULE 18 ENFORCEMENT
               </span>
             </div>
@@ -242,17 +255,21 @@ export default function DashboardPage() {
               Section 18 mandates compensation at SBI MCLR + 2% (currently 10.85% p.a.) on buyer funds for every day of delay past contractual handover.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-xs font-mono">
-              <div className="p-2.5 bg-card border border-border">
-                <div className="text-[10px] text-muted-foreground uppercase">Project Delay</div>
-                <div className="text-base font-bold text-destructive">+{delayDays} Days</div>
+              <div className="p-3 bg-card border border-border rounded-[4px]">
+                <div className="text-[10px] text-muted-foreground uppercase font-semibold">Project Delay</div>
+                <div className="text-base font-bold text-destructive mt-1">+{delayDays} Days</div>
               </div>
-              <div className="p-2.5 bg-card border border-border">
-                <div className="text-[10px] text-muted-foreground uppercase">Statutory Daily Penalty</div>
-                <div className="text-base font-bold text-foreground">{formatINR(dailyPenalty)} / day</div>
+              <div className="p-3 bg-card border border-border rounded-[4px]">
+                <div className="text-[10px] text-muted-foreground uppercase font-semibold">Statutory Daily Penalty</div>
+                <div className="text-base font-bold text-foreground mt-1">
+                  <AnimatedNumber value={dailyPenalty} formatter={(v) => `${formatINR(v)} / day`} />
+                </div>
               </div>
-              <div className="p-2.5 bg-card border border-border">
-                <div className="text-[10px] text-muted-foreground uppercase">Cumulative Penalty Risk</div>
-                <div className="text-base font-bold text-destructive">{formatINR(totalPenaltyExposure)}</div>
+              <div className="p-3 bg-card border border-border rounded-[4px]">
+                <div className="text-[10px] text-muted-foreground uppercase font-semibold">Cumulative Penalty Risk</div>
+                <div className="text-base font-bold text-destructive mt-1">
+                  <AnimatedNumber value={totalPenaltyExposure} formatter={(v) => formatINR(v)} />
+                </div>
               </div>
             </div>
             <div className="pt-1 flex items-center justify-end">
@@ -264,7 +281,7 @@ export default function DashboardPage() {
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {isLoading ? (
@@ -280,35 +297,46 @@ export default function DashboardPage() {
             actionHref="/wbs"
           />
         ) : (
-          <>
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2, delay: 0.1 }}
+            className="space-y-6"
+          >
             {/* Primary Metrics Ribbon */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <div className="p-4 border border-border bg-card">
-                <div className="text-[10px] font-mono uppercase text-muted-foreground">
+              <div className="p-4 border border-border bg-card rounded-[4px] shadow-sm">
+                <div className="text-[10px] font-mono uppercase text-muted-foreground font-semibold">
                   Planned Budget
                 </div>
                 <div className="text-xl font-bold font-mono text-foreground mt-1">
-                  {formatINR(dashboardData.total_planned_budget)}
+                  <AnimatedNumber
+                    value={dashboardData.total_planned_budget}
+                    formatter={(v) => formatINR(v)}
+                  />
                 </div>
                 <div className="text-[10px] font-mono text-muted-foreground mt-0.5">
                   WBS Parametric Baseline
                 </div>
               </div>
 
-              <div className="p-4 border border-border bg-card">
-                <div className="text-[10px] font-mono uppercase text-muted-foreground">
+              <div className="p-4 border border-border bg-card rounded-[4px] shadow-sm">
+                <div className="text-[10px] font-mono uppercase text-muted-foreground font-semibold">
                   Actual Material Spent
                 </div>
                 <div className="text-xl font-bold font-mono text-primary mt-1">
-                  {formatINR(dashboardData.total_actual_spent)}
+                  <AnimatedNumber
+                    value={dashboardData.total_actual_spent}
+                    formatter={(v) => formatINR(v)}
+                  />
                 </div>
                 <div className="text-[10px] font-mono text-muted-foreground mt-0.5">
                   From site delivery receipts
                 </div>
               </div>
 
-              <div className="p-4 border border-border bg-card">
-                <div className="text-[10px] font-mono uppercase text-muted-foreground">
+              <div className="p-4 border border-border bg-card rounded-[4px] shadow-sm">
+                <div className="text-[10px] font-mono uppercase text-muted-foreground font-semibold">
                   Budget Variance
                 </div>
                 <div
@@ -316,19 +344,25 @@ export default function DashboardPage() {
                     dashboardData.total_variance >= 0 ? "text-status-success" : "text-destructive"
                   }`}
                 >
-                  {formatINR(dashboardData.total_variance)}
+                  <AnimatedNumber
+                    value={dashboardData.total_variance}
+                    formatter={(v) => formatINR(v)}
+                  />
                 </div>
                 <div className="text-[10px] font-mono text-muted-foreground mt-0.5">
                   {dashboardData.total_variance >= 0 ? "Under allocated budget" : "Cost overrun alert"}
                 </div>
               </div>
 
-              <div className="p-4 border border-border bg-card">
-                <div className="text-[10px] font-mono uppercase text-muted-foreground">
+              <div className="p-4 border border-border bg-card rounded-[4px] shadow-sm">
+                <div className="text-[10px] font-mono uppercase text-muted-foreground font-semibold">
                   Budget Utilization
                 </div>
                 <div className="text-xl font-bold font-mono text-foreground mt-1">
-                  {dashboardData.budget_utilization_percent}%
+                  <AnimatedNumber
+                    value={dashboardData.budget_utilization_percent}
+                    formatter={(v) => `${v}%`}
+                  />
                 </div>
                 <div className="text-[10px] font-mono text-muted-foreground mt-0.5">
                   Overall construction spend
@@ -337,7 +371,7 @@ export default function DashboardPage() {
             </div>
 
             {/* S-Curve Chart */}
-            <div className="border border-border bg-card p-5 space-y-4">
+            <div className="border border-border bg-card p-5 space-y-4 rounded-[4px] shadow-sm">
               <div className="flex items-center justify-between border-b border-border pb-3">
                 <div>
                   <h3 className="font-heading font-semibold text-sm text-foreground">
@@ -352,40 +386,51 @@ export default function DashboardPage() {
               <div className="h-64 sm:h-80 w-full pt-2">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={dashboardData.s_curve_data}>
-                    <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                     <XAxis
                       dataKey="month"
-                      tick={{ fill: "currentColor", fontSize: 10, fontFamily: "monospace" }}
+                      tick={{ fill: "#8A94A6", fontSize: 10, fontFamily: "var(--font-mono)" }}
+                      axisLine={{ stroke: "rgba(255,255,255,0.1)" }}
+                      tickLine={false}
                     />
                     <YAxis
                       tickFormatter={(val) => `₹${(val / 10000000).toFixed(1)}Cr`}
-                      tick={{ fill: "currentColor", fontSize: 10, fontFamily: "monospace" }}
+                      tick={{ fill: "#8A94A6", fontSize: 10, fontFamily: "var(--font-mono)" }}
+                      axisLine={{ stroke: "rgba(255,255,255,0.1)" }}
+                      tickLine={false}
                     />
                     <Tooltip
                       formatter={(val: any) => [formatINR(Number(val)), "Spend"]}
                       contentStyle={{
-                        backgroundColor: "var(--card)",
-                        borderColor: "var(--border)",
+                        backgroundColor: "#1A2029",
+                        border: "1px solid #283243",
+                        borderRadius: "4px",
                         fontSize: "11px",
-                        fontFamily: "monospace",
+                        fontFamily: "var(--font-mono)",
+                        color: "#F1F5F9",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
                       }}
+                      itemStyle={{ color: "#F1F5F9" }}
+                      labelStyle={{ color: "#8A94A6", fontWeight: "bold", marginBottom: "4px" }}
                     />
-                    <Legend wrapperStyle={{ fontSize: "11px", fontFamily: "monospace" }} />
+                    <Legend wrapperStyle={{ fontSize: "11px", fontFamily: "var(--font-mono)", paddingTop: "8px" }} />
                     <Line
                       type="monotone"
                       dataKey="planned_cumulative"
                       name="Planned Cumulative Budget"
-                      stroke="#4F75FF"
+                      stroke="#8A94A6"
                       strokeWidth={2}
+                      strokeDasharray="4 4"
                       dot={false}
                     />
                     <Line
                       type="monotone"
                       dataKey="actual_cumulative"
                       name="Actual Cumulative Spend"
-                      stroke="#22c55e"
-                      strokeWidth={2}
-                      dot={{ r: 3 }}
+                      stroke="#E8590C"
+                      strokeWidth={2.5}
+                      dot={{ r: 3.5, fill: "#E8590C" }}
+                      activeDot={{ r: 5, fill: "#E8590C", stroke: "#FFF", strokeWidth: 1.5 }}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -393,7 +438,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Package Breakdown Table */}
-            <div className="border border-border bg-card overflow-hidden">
+            <div className="border border-border bg-card rounded-[4px] shadow-sm overflow-hidden">
               <div className="p-3 bg-muted/30 border-b border-border flex items-center justify-between">
                 <span className="font-heading font-semibold text-xs text-foreground">
                   Work Package Level Budget Allocation vs Actual Spent
@@ -445,7 +490,7 @@ export default function DashboardPage() {
 
             {/* Recalibrated Critical Crash Slopes Section */}
             {dashboardData.recalibrated_tasks.length > 0 && (
-              <div className="border border-border bg-card p-4 space-y-3">
+              <div className="border border-border bg-card p-4 space-y-3 rounded-[4px] shadow-sm">
                 <div className="flex items-center justify-between border-b border-border pb-2">
                   <div>
                     <h3 className="font-heading font-semibold text-xs text-foreground flex items-center gap-1.5">
@@ -484,8 +529,8 @@ export default function DashboardPage() {
                             <span
                               className={
                                 task.change_percent > 0
-                                  ? "text-status-warning font-semibold"
-                                  : "text-status-success font-semibold"
+                                    ? "text-status-warning font-semibold"
+                                    : "text-status-success font-semibold"
                               }
                             >
                               {task.change_percent > 0 ? `+${task.change_percent}%` : `${task.change_percent}%`}
@@ -498,7 +543,7 @@ export default function DashboardPage() {
                 </div>
               </div>
             )}
-          </>
+          </motion.div>
         )}
       </main>
     </div>
