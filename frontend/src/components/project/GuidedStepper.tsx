@@ -2,6 +2,7 @@
 
 import React from "react"
 import Link from "next/link"
+import { motion } from "framer-motion"
 import { CheckCircle2, Circle, ArrowRight, ShieldCheck, Users, FileSpreadsheet, Zap } from "lucide-react"
 
 export interface GuidedStepperProps {
@@ -62,7 +63,7 @@ export function GuidedStepper({
   const progressPercent = Math.round((completedCount / steps.length) * 100)
 
   return (
-    <div className="border border-border bg-card p-4 space-y-4">
+    <div className="border border-border bg-card p-4 space-y-4 rounded-[4px]">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border pb-3">
         <div>
           <span className="text-[10px] font-mono uppercase tracking-wider text-primary font-semibold">
@@ -73,10 +74,12 @@ export function GuidedStepper({
           </h3>
         </div>
         <div className="flex items-center gap-3">
-          <div className="w-32 bg-secondary h-2 border border-border overflow-hidden">
-            <div
-              className="bg-primary h-full transition-all duration-300"
-              style={{ width: `${progressPercent}%` }}
+          <div className="w-32 bg-secondary h-2 border border-border overflow-hidden rounded-[2px]">
+            <motion.div
+              initial={false}
+              animate={{ width: `${progressPercent}%` }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              className="bg-primary h-full"
             />
           </div>
           <span className="text-xs font-mono font-bold text-foreground">
@@ -85,7 +88,7 @@ export function GuidedStepper({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {steps.map((s) => {
           const Icon = s.icon
           const isActive = currentStep === s.step
@@ -93,7 +96,7 @@ export function GuidedStepper({
             <Link
               key={s.step}
               href={s.href}
-              className={`p-3 border transition-colors flex flex-col justify-between group ${
+              className={`p-3 border transition-colors flex flex-col justify-between group rounded-[4px] ${
                 s.isDone
                   ? "border-status-success/40 bg-status-success/5 hover:bg-status-success/10"
                   : isActive
@@ -104,7 +107,7 @@ export function GuidedStepper({
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <span
-                    className={`text-[10px] font-mono font-bold px-1.5 py-0.5 border ${
+                    className={`text-[9px] font-mono font-bold px-1.5 py-0.5 border rounded-[2px] ${
                       s.isDone
                         ? "bg-status-success/20 text-status-success border-status-success/30"
                         : isActive
@@ -130,7 +133,7 @@ export function GuidedStepper({
               </div>
 
               <div className="mt-3 pt-2 border-t border-border/50 flex items-center justify-between text-[11px] font-mono">
-                <span className={s.isDone ? "text-status-success" : "text-muted-foreground"}>
+                <span className={s.isDone ? "text-status-success font-medium" : "text-muted-foreground"}>
                   {s.isDone ? "Completed" : "Action Required"}
                 </span>
                 <ArrowRight className="w-3 h-3 text-muted-foreground group-hover:text-primary transition-transform group-hover:translate-x-0.5" />

@@ -4,6 +4,7 @@ import React, { useState } from "react"
 import { useDropzone } from "react-dropzone"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { motion, AnimatePresence } from "framer-motion"
 import { getApiUrl } from "@/lib/api"
 import { TopBar } from "@/components/layout/TopBar"
 import { EmptyState } from "@/components/ui/EmptyState"
@@ -187,21 +188,21 @@ export default function ReraReviewPage() {
     const score = formData.confidence_scores[fieldKey] || "MANUAL"
     if (score === "HIGH") {
       return (
-        <span className="text-[10px] font-mono px-1.5 py-0.2 bg-status-success/15 text-status-success border border-status-success/30">
+        <span className="text-[9px] font-mono px-1.5 py-0.2 bg-status-success/15 text-status-success border border-status-success/30 rounded-[2px] font-semibold">
           HIGH CONFIDENCE
         </span>
       )
     }
     if (score === "INFERRED" || score === "MEDIUM") {
       return (
-        <span className="text-[10px] font-mono px-1.5 py-0.2 bg-status-warning/15 text-status-warning border border-status-warning/30">
+        <span className="text-[9px] font-mono px-1.5 py-0.2 bg-status-warning/15 text-status-warning border border-status-warning/30 rounded-[2px] font-semibold">
           INFERRED • VERIFY
         </span>
       )
     }
     return (
-      <span className="text-[10px] font-mono px-1.5 py-0.2 bg-destructive/15 text-destructive border border-destructive/30">
-        NOT FOUND • ENTER
+      <span className="text-[9px] font-mono px-1.5 py-0.2 bg-muted text-muted-foreground border border-border rounded-[2px] font-semibold">
+        MANUAL INPUT
       </span>
     )
   }
@@ -215,7 +216,12 @@ export default function ReraReviewPage() {
 
       <main className="p-4 md:p-6 space-y-6 max-w-5xl">
         {/* Compulsory Review Alert */}
-        <div className="border border-status-warning/40 bg-status-warning/10 p-4 flex items-start gap-3">
+        <motion.div
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2 }}
+          className="border border-status-warning/40 bg-status-warning/10 p-4 flex items-start gap-3 rounded-[4px]"
+        >
           <ShieldAlert className="w-5 h-5 text-status-warning shrink-0 mt-0.5" />
           <div className="text-xs">
             <h2 className="font-heading font-semibold text-foreground uppercase tracking-wider">
@@ -226,55 +232,67 @@ export default function ReraReviewPage() {
               As Project Manager, you must review, edit where required, and explicitly click Confirm to create the project.
             </p>
           </div>
-        </div>
+        </motion.div>
 
         {errorMessage && (
-          <div className="flex items-center gap-2 p-3 border border-destructive/50 bg-destructive/10 text-destructive text-xs font-mono">
+          <div
+            role="alert"
+            className="flex items-center gap-2 p-3 border border-destructive/50 bg-destructive/10 text-destructive text-xs font-mono rounded-[4px]"
+          >
             <AlertTriangle className="w-4 h-4 shrink-0" />
             <span>{errorMessage}</span>
           </div>
         )}
 
         {/* Confirmed Project Success Banner & Guided Stepper */}
-        {confirmedProject && (
-          <div className="space-y-4">
-            <div className="border border-status-success/50 bg-status-success/10 p-5 space-y-3">
-              <div className="flex items-center gap-2 text-status-success font-heading font-semibold text-sm">
-                <CheckCircle2 className="w-5 h-5" />
-                <span>Project Successfully Confirmed & Created in Database!</span>
+        <AnimatePresence>
+          {confirmedProject && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              transition={{ duration: 0.22 }}
+              className="space-y-4"
+            >
+              <div className="border border-status-success/50 bg-status-success/10 p-5 space-y-3 rounded-[4px]">
+                <div className="flex items-center gap-2 text-status-success font-heading font-semibold text-sm">
+                  <CheckCircle2 className="w-5 h-5" />
+                  <span>Project Successfully Confirmed & Created in Database!</span>
+                </div>
+                <p className="text-xs font-mono text-foreground">
+                  Project Name: <span className="font-bold">{confirmedProject.name}</span> (ID: {confirmedProject.id})
+                </p>
+                <div className="pt-2 flex items-center gap-3">
+                  <motion.button
+                    whileTap={{ scale: 0.98 }}
+                    type="button"
+                    onClick={() => {
+                      setFormData(null)
+                      setFileName(null)
+                      setConfirmedProject(null)
+                    }}
+                    className="px-3 py-1.5 border border-border bg-card text-foreground font-mono text-xs hover:bg-muted transition-colors rounded-[4px] cursor-pointer"
+                  >
+                    Create Another Project
+                  </motion.button>
+                </div>
               </div>
-              <p className="text-xs font-mono text-foreground">
-                Project Name: <span className="font-bold">{confirmedProject.name}</span> (ID: {confirmedProject.id})
-              </p>
-              <div className="pt-2 flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setFormData(null)
-                    setFileName(null)
-                    setConfirmedProject(null)
-                  }}
-                  className="px-3 py-1.5 border border-border bg-card text-foreground font-mono text-xs hover:bg-muted"
-                >
-                  Create Another Project
-                </button>
-              </div>
-            </div>
 
-            <GuidedStepper
-              projectId={confirmedProject.id}
-              projectName={confirmedProject.name}
-              currentStep={1}
-            />
-          </div>
-        )}
+              <GuidedStepper
+                projectId={confirmedProject.id}
+                projectName={confirmedProject.name}
+                currentStep={1}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Upload Dropzone */}
         {!confirmedProject && (
           <div className="space-y-3">
             <div
               {...getRootProps()}
-              className={`border-2 border-dashed p-8 text-center cursor-pointer transition-colors ${
+              className={`border-2 border-dashed p-8 text-center cursor-pointer transition-colors rounded-[4px] ${
                 isDragActive
                   ? "border-primary bg-primary/5"
                   : "border-border bg-card hover:bg-muted/30"
@@ -298,7 +316,7 @@ export default function ReraReviewPage() {
                   Extracts project title, registration number, promoter name, sanctioned FSI area, floors, and completion date
                 </div>
                 {fileName && (
-                  <div className="mt-2 text-xs font-mono px-2.5 py-1 bg-secondary border border-border text-foreground flex items-center gap-1.5">
+                  <div className="mt-2 text-xs font-mono px-2.5 py-1 bg-secondary border border-border text-foreground flex items-center gap-1.5 rounded-[2px]">
                     <FileText className="w-3.5 h-3.5 text-primary" />
                     <span>{fileName}</span>
                   </div>
@@ -311,7 +329,7 @@ export default function ReraReviewPage() {
                 <button
                   type="button"
                   onClick={handleStartManualEntry}
-                  className="inline-flex items-center gap-1.5 text-xs font-mono text-primary hover:underline"
+                  className="inline-flex items-center gap-1.5 text-xs font-mono text-primary hover:underline cursor-pointer"
                 >
                   <PlusCircle className="w-3.5 h-3.5" />
                   <span>Or create project by entering parameters manually</span>
@@ -323,7 +341,12 @@ export default function ReraReviewPage() {
 
         {/* Pre-Filled Verification Form */}
         {formData && !confirmedProject && (
-          <div className="bg-card border border-border p-5 space-y-6">
+          <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.22 }}
+            className="bg-card border border-border p-5 space-y-6 rounded-[4px]"
+          >
             <div className="flex items-center justify-between border-b border-border pb-3">
               <div>
                 <h3 className="font-heading font-semibold text-sm text-foreground">
@@ -336,7 +359,7 @@ export default function ReraReviewPage() {
               <button
                 type="button"
                 onClick={() => setFormData(null)}
-                className="flex items-center gap-1 text-[11px] font-mono text-muted-foreground hover:text-foreground"
+                className="flex items-center gap-1 text-[11px] font-mono text-muted-foreground hover:text-foreground cursor-pointer"
               >
                 <RotateCcw className="w-3 h-3" />
                 <span>Reset</span>
@@ -347,15 +370,16 @@ export default function ReraReviewPage() {
               {/* Project Name */}
               <div className="space-y-1">
                 <div className="flex items-center justify-between text-xs font-mono">
-                  <label className="text-foreground font-medium">Project Name *</label>
+                  <label htmlFor="field-project-name" className="text-foreground font-medium">Project Name *</label>
                   {renderConfidenceBadge("project_name")}
                 </div>
                 <input
+                  id="field-project-name"
                   type="text"
                   value={formData.project_name}
                   onChange={(e) => setFormData({ ...formData, project_name: e.target.value })}
                   placeholder="e.g. Emerald Heights Tower A"
-                  className="w-full px-3 py-2 text-xs font-mono bg-background border border-border text-foreground focus:outline-none focus:border-primary"
+                  className="w-full px-3 py-2 text-xs font-mono bg-background border border-border text-foreground rounded-[4px] focus:outline-none focus:border-primary focus-visible:ring-1 focus-visible:ring-primary"
                   required
                 />
               </div>
@@ -363,15 +387,16 @@ export default function ReraReviewPage() {
               {/* RERA Number */}
               <div className="space-y-1">
                 <div className="flex items-center justify-between text-xs font-mono">
-                  <label className="text-foreground font-medium">MahaRERA Registration No *</label>
+                  <label htmlFor="field-rera-no" className="text-foreground font-medium">MahaRERA Registration No *</label>
                   {renderConfidenceBadge("rera_registration_no")}
                 </div>
                 <input
+                  id="field-rera-no"
                   type="text"
                   value={formData.rera_registration_no}
                   onChange={(e) => setFormData({ ...formData, rera_registration_no: e.target.value })}
                   placeholder="e.g. P52100018921"
-                  className="w-full px-3 py-2 text-xs font-mono bg-background border border-border text-foreground focus:outline-none focus:border-primary"
+                  className="w-full px-3 py-2 text-xs font-mono bg-background border border-border text-foreground rounded-[4px] focus:outline-none focus:border-primary focus-visible:ring-1 focus-visible:ring-primary"
                   required
                 />
               </div>
@@ -379,30 +404,32 @@ export default function ReraReviewPage() {
               {/* Promoter Name */}
               <div className="space-y-1">
                 <div className="flex items-center justify-between text-xs font-mono">
-                  <label className="text-foreground font-medium">Promoter / Developer Name</label>
+                  <label htmlFor="field-promoter-name" className="text-foreground font-medium">Promoter / Developer Name</label>
                   {renderConfidenceBadge("promoter_name")}
                 </div>
                 <input
+                  id="field-promoter-name"
                   type="text"
                   value={formData.promoter_name}
                   onChange={(e) => setFormData({ ...formData, promoter_name: e.target.value })}
                   placeholder="e.g. Solitaire Infra Projects Pvt Ltd"
-                  className="w-full px-3 py-2 text-xs font-mono bg-background border border-border text-foreground focus:outline-none focus:border-primary"
+                  className="w-full px-3 py-2 text-xs font-mono bg-background border border-border text-foreground rounded-[4px] focus:outline-none focus:border-primary focus-visible:ring-1 focus-visible:ring-primary"
                 />
               </div>
 
               {/* Handover Date */}
               <div className="space-y-1">
                 <div className="flex items-center justify-between text-xs font-mono">
-                  <label className="text-foreground font-medium">Proposed Handover Date *</label>
+                  <label htmlFor="field-handover-date" className="text-foreground font-medium">Proposed Handover Date *</label>
                   {renderConfidenceBadge("proposed_completion_date")}
                 </div>
                 <input
+                  id="field-handover-date"
                   type="text"
                   value={formData.proposed_completion_date}
                   onChange={(e) => setFormData({ ...formData, proposed_completion_date: e.target.value })}
                   placeholder="DD/MM/YYYY or YYYY-MM-DD"
-                  className="w-full px-3 py-2 text-xs font-mono bg-background border border-border text-foreground focus:outline-none focus:border-primary"
+                  className="w-full px-3 py-2 text-xs font-mono bg-background border border-border text-foreground rounded-[4px] focus:outline-none focus:border-primary focus-visible:ring-1 focus-visible:ring-primary"
                   required
                 />
               </div>
@@ -410,15 +437,16 @@ export default function ReraReviewPage() {
               {/* Built-up Area */}
               <div className="space-y-1">
                 <div className="flex items-center justify-between text-xs font-mono">
-                  <label className="text-foreground font-medium">Sanctioned Built-Up Area (sq.ft) *</label>
+                  <label htmlFor="field-bu-area" className="text-foreground font-medium">Sanctioned Built-Up Area (sq.ft) *</label>
                   {renderConfidenceBadge("built_up_area_sqft")}
                 </div>
                 <input
+                  id="field-bu-area"
                   type="number"
                   value={formData.built_up_area_sqft || ""}
                   onChange={(e) => setFormData({ ...formData, built_up_area_sqft: parseFloat(e.target.value) || 0 })}
                   placeholder="e.g. 75000"
-                  className="w-full px-3 py-2 text-xs font-mono bg-background border border-border text-foreground focus:outline-none focus:border-primary"
+                  className="w-full px-3 py-2 text-xs font-mono bg-background border border-border text-foreground rounded-[4px] focus:outline-none focus:border-primary focus-visible:ring-1 focus-visible:ring-primary"
                   required
                 />
               </div>
@@ -426,15 +454,16 @@ export default function ReraReviewPage() {
               {/* Number of Floors */}
               <div className="space-y-1">
                 <div className="flex items-center justify-between text-xs font-mono">
-                  <label className="text-foreground font-medium">Number of Floors (G+X) *</label>
+                  <label htmlFor="field-floors" className="text-foreground font-medium">Number of Floors (G+X) *</label>
                   {renderConfidenceBadge("number_of_floors")}
                 </div>
                 <input
+                  id="field-floors"
                   type="number"
                   value={formData.number_of_floors || ""}
                   onChange={(e) => setFormData({ ...formData, number_of_floors: parseInt(e.target.value, 10) || 1 })}
                   placeholder="e.g. 14"
-                  className="w-full px-3 py-2 text-xs font-mono bg-background border border-border text-foreground focus:outline-none focus:border-primary"
+                  className="w-full px-3 py-2 text-xs font-mono bg-background border border-border text-foreground rounded-[4px] focus:outline-none focus:border-primary focus-visible:ring-1 focus-visible:ring-primary"
                   required
                 />
               </div>
@@ -442,30 +471,32 @@ export default function ReraReviewPage() {
               {/* Basements */}
               <div className="space-y-1">
                 <div className="flex items-center justify-between text-xs font-mono">
-                  <label className="text-foreground font-medium">Number of Basements</label>
+                  <label htmlFor="field-basements" className="text-foreground font-medium">Number of Basements</label>
                   {renderConfidenceBadge("number_of_basements")}
                 </div>
                 <input
+                  id="field-basements"
                   type="number"
                   value={formData.number_of_basements || ""}
                   onChange={(e) => setFormData({ ...formData, number_of_basements: parseInt(e.target.value, 10) || 0 })}
                   placeholder="e.g. 1"
-                  className="w-full px-3 py-2 text-xs font-mono bg-background border border-border text-foreground focus:outline-none focus:border-primary"
+                  className="w-full px-3 py-2 text-xs font-mono bg-background border border-border text-foreground rounded-[4px] focus:outline-none focus:border-primary focus-visible:ring-1 focus-visible:ring-primary"
                 />
               </div>
 
               {/* Total Estimated Cost */}
               <div className="space-y-1">
                 <div className="flex items-center justify-between text-xs font-mono">
-                  <label className="text-foreground font-medium">Estimated Project Cost (INR)</label>
+                  <label htmlFor="field-cost" className="text-foreground font-medium">Estimated Project Cost (INR)</label>
                   {renderConfidenceBadge("total_project_cost")}
                 </div>
                 <input
+                  id="field-cost"
                   type="number"
                   value={formData.total_project_cost || ""}
                   onChange={(e) => setFormData({ ...formData, total_project_cost: parseFloat(e.target.value) || 0 })}
                   placeholder="e.g. 180000000"
-                  className="w-full px-3 py-2 text-xs font-mono bg-background border border-border text-foreground focus:outline-none focus:border-primary"
+                  className="w-full px-3 py-2 text-xs font-mono bg-background border border-border text-foreground rounded-[4px] focus:outline-none focus:border-primary focus-visible:ring-1 focus-visible:ring-primary"
                 />
                 {formData.total_project_cost > 0 && (
                   <div className="text-[10px] font-mono text-muted-foreground">
@@ -477,15 +508,16 @@ export default function ReraReviewPage() {
 
             {/* Engineer Notes */}
             <div className="space-y-1">
-              <label className="block text-xs font-mono text-muted-foreground">
+              <label htmlFor="field-notes" className="block text-xs font-mono text-muted-foreground">
                 Verification Notes & Annexure Reference
               </label>
               <textarea
+                id="field-notes"
                 value={userNotes}
                 onChange={(e) => setUserNotes(e.target.value)}
                 rows={2}
                 placeholder="e.g. Verified against sanctioned layout drawing dated 25-Oct-2026."
-                className="w-full px-3 py-2 text-xs font-mono bg-background border border-border text-foreground focus:outline-none focus:border-primary"
+                className="w-full px-3 py-2 text-xs font-mono bg-background border border-border text-foreground rounded-[4px] focus:outline-none focus:border-primary focus-visible:ring-1 focus-visible:ring-primary"
               />
             </div>
 
@@ -494,11 +526,12 @@ export default function ReraReviewPage() {
               <div className="text-[11px] font-mono text-muted-foreground">
                 Clicking Confirm permanently registers the project into database tables.
               </div>
-              <button
+              <motion.button
                 type="button"
+                whileTap={{ scale: 0.98 }}
                 disabled={isConfirming}
                 onClick={handleConfirm}
-                className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-mono text-xs font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 border border-primary shadow-sm"
+                className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-mono text-xs font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 border border-primary shadow-sm rounded-[4px] cursor-pointer"
               >
                 {isConfirming ? (
                   <>
@@ -511,9 +544,9 @@ export default function ReraReviewPage() {
                     <span>CONFIRM & CREATE PROJECT</span>
                   </>
                 )}
-              </button>
+              </motion.button>
             </div>
-          </div>
+          </motion.div>
         )}
       </main>
     </div>
