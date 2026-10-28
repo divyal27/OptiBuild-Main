@@ -69,21 +69,29 @@ _load_env_fallback()
 _raw_database_url = os.getenv("DATABASE_URL")
 DATABASE_URL = clean_database_url(_raw_database_url) if _raw_database_url else None
 
-# Initialize SQLAlchemy engine with NullPool for transaction pooling (port 6543)
-if DATABASE_URL:
-    engine_kwargs = {}
-    if not DATABASE_URL.startswith("sqlite"):
-        engine_kwargs["poolclass"] = NullPool
+def _build_engine(url: str):
+    kwargs = {}
+    if not url.startswith("sqlite"):
+        kwargs["poolclass"] = NullPool
     else:
-        engine_kwargs["connect_args"] = {"check_same_thread": False}
-    engine = create_engine(
-        DATABASE_URL,
-        **engine_kwargs,
-    )
-    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-else:
-    engine = None
-    SessionLocal = None
+        kwargs["connect_args"] = {"check_same_thread": False}
+    return create_engine(url, **kwargs)
+
+_target_url = DATABASE_URL or "sqlite:///./optibuild.db"
+try:
+    eng = _build_engine(_target_url)
+    if "localhost" in _target_url or "127.0.0.1" in _target_url:
+        with eng.connect() as _c:
+            pass
+    engine = eng
+    DATABASE_URL = _target_url
+except Exception as _err:
+    print(f"[Warning] Could not connect to {_target_url}: {_err}. Falling back to SQLite: sqlite:///./optibuild.db")
+    sqlite_url = "sqlite:///./optibuild.db"
+    DATABASE_URL = sqlite_url
+    engine = _build_engine(sqlite_url)
+
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 

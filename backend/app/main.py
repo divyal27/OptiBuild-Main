@@ -51,8 +51,10 @@ import backend.app.db.models  # noqa: F401
 if engine:
     try:
         Base.metadata.create_all(bind=engine)
+        from backend.app.db.seed import auto_seed_if_empty
+        auto_seed_if_empty()
     except Exception as _e:
-        pass
+        print(f"[Warning] Startup initialization failed: {_e}")
 
 
 

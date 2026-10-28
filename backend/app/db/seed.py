@@ -121,5 +121,24 @@ def seed_database():
         db.close()
 
 
+def auto_seed_if_empty():
+    """
+    Called on FastAPI startup. If users table is empty, seeds the 7 demo accounts automatically.
+    """
+    from backend.app.db.session import SessionLocal
+    if not SessionLocal:
+        return
+    db = SessionLocal()
+    try:
+        count = db.query(User).count()
+        if count == 0:
+            print("[*] Empty database detected on startup. Auto-seeding 7 demo accounts...")
+            seed_database()
+    except Exception as e:
+        print(f"[Warning] Auto-seed check failed: {e}")
+    finally:
+        db.close()
+
+
 if __name__ == "__main__":
     seed_database()
