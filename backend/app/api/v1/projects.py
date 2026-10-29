@@ -1,3 +1,4 @@
+import logging
 import uuid
 from typing import List, Optional, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
@@ -30,6 +31,8 @@ from backend.app.schemas.optimizer import RERAPenaltyParams, CrashableTaskItem
 from backend.app.engine.optimizer import DelayRecoveryOptimizer
 from backend.app.engine.benchmark import BenchmarkEngine
 from backend.app.engine.classifier import SitePhotoClassifier
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/projects", tags=["Project Lifecycle & Role Workflow"])
 
@@ -282,8 +285,8 @@ def generate_and_save_wbs(
         try:
             cpm_res = CPMEngine(tasks_list).compute()
             cpm_map = {t.id: t for t in cpm_res.tasks}
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("CPM precompute failed for project %s: %s", project_id, e)
 
         tasks_added = 0
         for item in tasks_list:
