@@ -115,10 +115,6 @@ def read_current_user_profile(
             .filter((Project.created_by_id == current_user.id) | (Project.id.in_(assigned_project_ids)))
             .all()
         )
-        # If no specific assignment, for demo convenience permit all projects for reading
-        if not projects:
-            projects = db.query(Project).all()
-
     project_list = [
         {
             "id": p.id,
