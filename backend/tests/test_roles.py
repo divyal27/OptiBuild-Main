@@ -336,3 +336,7 @@ def test_list_projects_non_admin_returns_empty_when_no_memberships():
     resp = client.get("/api/v1/projects", headers={"Authorization": f"Bearer {iso_token}"})
     assert resp.status_code == 200
     assert resp.json() == []
+
+    me_resp = client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {iso_token}"})
+    assert me_resp.status_code == 200
+    assert me_resp.json()["projects"] == []
