@@ -43,9 +43,28 @@ def test_admin_role_has_universal_access():
     assert resp_wbs.status_code == 200
 
 
-def test_non_admin_cannot_access_user_management():
-    """Non-admin roles are forbidden from managing users."""
-    roles = ["project_manager", "site_engineer", "store_keeper", "architect", "accountant", "owner"]
+def test_project_manager_can_list_users_and_assign_members():
+    """PM can list the roster and assign project members; other non-admin roles cannot list users."""
+    pm_headers = auth_header("project_manager")
+    users_resp = client.get("/api/v1/users", headers=pm_headers)
+    assert users_resp.status_code == 200
+
+    proj_id = _setup_roles_test_project()
+    db = SessionLocal()
+    try:
+        admin = db.query(User).filter(User.email == "admin@optibuild.io").first()
+        admin_id = admin.id
+    finally:
+        db.close()
+
+    assign_resp = client.post(
+        f"/api/v1/projects/{proj_id}/members",
+        json={"user_id": admin_id, "role": "site_engineer"},
+        headers=pm_headers,
+    )
+    assert assign_resp.status_code == 200
+
+    roles = ["site_engineer", "store_keeper", "architect", "accountant", "owner"]
     for r in roles:
         resp = client.get("/api/v1/users", headers=auth_header(r))
         assert resp.status_code == 403
