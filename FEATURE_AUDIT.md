@@ -7,6 +7,7 @@
 | Branch | `codex-stabilize` |
 | Backend tests | PASS: 79 passed, 13 warnings using the project-pinned Python 3.12 environment. |
 | Frontend build | PASS: `npm run build`; 13 routes generated. Existing middleware deprecation warning. |
+| Public Vercel routes | PARTIAL: `/benchmark`, `/dashboard`, and `/rera-review` returned 200; `/login` and `/admin` returned 404. |
 | Current branch backend | PASS: `/health` returned 200 on port 8001; port 8000 was already held by Docker Desktop's proxy. |
 | PM module chain | PASS on port 8001: detail, WBS, GA, CP-SAT, optimizer, Budget vs Actual, drawings all returned 200. PM roster returned 200; site engineer roster denial returned 403. |
 | Port 8000 service | PARTIAL: PM login and project detail returned 200, but PM roster returned 403 and WBS returned 500. Server logs were unavailable; no code change was made based on that response. |

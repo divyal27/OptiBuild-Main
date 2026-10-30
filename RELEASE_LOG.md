@@ -23,3 +23,13 @@ Done: current branch on port 8001 returned 200 for project detail, WBS, GA, CP-S
 Found: existing port 8000 returned WBS 500, PM roster 403, benchmark/optimizer 400 with Generate WBS first, dashboard/drawings 200; no backend traceback available.
 Fixed: no code change made without confirming the port 8000 WBS root cause; port 8001 verifies the checked-out source.
 Next: user must run the current branch backend on the demo port and verify F04/F08/F09 before release.
+PHASE 5 — PRODUCTION SMOKE: partial.
+Done: public Vercel benchmark, dashboard, and RERA routes returned 200; local frontend routes all returned 200.
+Found: public `/login` and `/admin` returned 404; no Vercel CLI or deployed backend URL was available in the repo config.
+Fixed: no deployment/UI changes made; frontend config has no explicit route rewrites.
+Next: block main release and publish only codex-stabilize.
+PHASE 6 — RELEASE: blocked for main.
+Done: F02/F06 fixes, F08 test coverage, and P2 audit are committed on codex-stabilize.
+Found: port 8000 is stale for F04/F08/F09, and public login/admin routes return 404.
+Fixed: main was not touched; demo-data cleanup remains pending your go.
+Next: push codex-stabilize only and list the exact backend/deployment checks still needed.
