@@ -29,7 +29,8 @@ Found: public `/login` and `/admin` returned 404; no Vercel CLI or deployed back
 Fixed: no deployment/UI changes made; frontend config has no explicit route rewrites.
 Next: block main release and publish only codex-stabilize.
 PHASE 6 — RELEASE: blocked for main.
-Done: F02/F06 fixes, F08 test coverage, and P2 audit are committed on codex-stabilize.
+Done: F02/F06 fixes, F08 test coverage, and P2 audit are committed and codex-stabilize is pushed to origin.
 Found: port 8000 is stale for F04/F08/F09, and public login/admin routes return 404.
 Fixed: main was not touched; demo-data cleanup remains pending your go.
-Next: push codex-stabilize only and list the exact backend/deployment checks still needed.
+Next: resolve F04/F08/F09 on the demo backend and the two public 404s; do P3 cleanup only after your go.
+
