@@ -48,3 +48,7 @@ Thumbs.db
 .agent/
 .agents/
 .codex/
+
+# Autonomous release test artifacts
+test-docs/
+ralph-logs/
