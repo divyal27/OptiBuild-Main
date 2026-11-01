@@ -85,6 +85,13 @@ Whenever an AI agent detects, investigates, or fixes a bug, lint issue, test fai
 - **Autonomous Fix:** Deployed `engg-agent` in an isolated Git worktree. Upgraded Next.js to `16.4.3`, `eslint-config-next` to `16.4.3`, and added `experimental: { agentUpgrade: "security" }` to `next.config.ts`.
 - **Verification:** `npm run build` in `frontend/` compiled successfully in 14.3s with all 13 routes prerendered and 0 errors.
 
+### [ERR-004] 2026-11-01 | Agent: Fleet Bug Hunter (Antigravity 2.0) | Operator: Bhushan Bhosale
+- **Error Signature:** `ModuleNotFoundError: No module named 'backend'` & `AssertionError: assert 'CRASH_SCHEDULE' == 'ACCEPT_PENALTY'`
+- **Failing Target:** `pytest backend/tests -v` (`backend/tests/conftest.py:7`) & `backend/app/engine/optimizer.py:135`
+- **Root Cause:** 1) Missing root `pytest.ini` pythonpath configuration caused direct `pytest backend/tests` execution to fail with `ModuleNotFoundError: No module named 'backend'`. 2) In `DelayRecoveryOptimizer.evaluate`, when a delayed project has 0 recoverable days (`days_rec == 0`) due to critical path activities already at minimum crash duration, `total_crash_cost` evaluated to `0.0 < total_penalty`, erroneously recommending `CRASH_SCHEDULE` at ₹0.00 cost instead of `ACCEPT_PENALTY` for infeasible schedule compression.
+- **Autonomous Fix:** 1) Added `pytest.ini` with `pythonpath = .` and hardened `backend/tests/conftest.py` with `sys.path` repo root insertion. 2) Surgically patched `DelayRecoveryOptimizer.evaluate` to handle 0-day delays, uncrashable schedules (`days_rec == 0`), and partial recovery economics against avoidable statutory penalty. Added `backend/app/engine/penalty/` module re-exports. 3) Added regression tests `test_uncrashable_schedule_recommends_accept_penalty` and `test_zero_delay_days_recommends_no_delay` (Beyonce Rule).
+- **Verification:** `pytest backend/tests -v` verified with 86/86 unit and integration tests passing (100% green).
+
 <!-- AGENTS APPEND NEW ENTRIES ABOVE THIS LINE -->
 
 ---
@@ -100,6 +107,7 @@ Whenever an AI agent detects, investigates, or fixes a bug, lint issue, test fai
 | `TASK-005` | OR-Tools CP-SAT Baseline Model | `feat/academic-research-docs` | Claude Code / Codex | Chaitanya | 🟢 Complete | Pytest 74/74 green |
 | `TASK-006` | Next.js Gantt & Project Ingestion | `feat/academic-research-docs` | Cursor / Antigravity | Aniket | 🟢 Complete | npm run build (16.4.3) |
 | `TASK-007` | SPPU Academic Research & Docs | `feat/academic-research-docs` | Antigravity | Bhushan | 🟢 Complete | IEEE paper & synopsis |
+| `TASK-008` | Delay Recovery Optimizer & Pytest Fix | `feat/academic-research-docs` | Antigravity 2.0 | Bhushan | 🟢 Complete | Pytest 86/86 green |
 
 *Status codes: `🟢 Complete` | `🟡 In Progress` | `🔴 Blocked` | `⚪ Queued`*
 

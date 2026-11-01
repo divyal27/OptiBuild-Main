@@ -131,24 +131,39 @@ class DelayRecoveryOptimizer:
 
         days_rec, total_crash_cost, actions = cls.optimize_crashing(tasks, recovery_target)
 
-        # Decision rule: Recommend the cheaper option
-        is_crash_cheaper = total_crash_cost < total_pen
-        net_savings = abs(total_pen - total_crash_cost)
+        # Decision rule: Recommend cheaper option accounting for feasibility & partial recovery
+        avoided_penalty = round(days_rec * daily_pen, 2)
+        remaining_penalty = round(max(0, recovery_target - days_rec) * daily_pen, 2)
 
-        if is_crash_cheaper:
-            recommendation = "CRASH_SCHEDULE"
-            title = "CRASH SCHEDULE (RECOMMENDED)"
+        if recovery_target <= 0:
+            recommendation = "ACCEPT_PENALTY"
+            title = "NO DELAY DETECTED"
+            net_savings = 0.0
+            rationale = "Project is on schedule (0 days delay). No statutory MahaRERA delay penalty applies and no schedule crashing is required."
+        elif days_rec == 0:
+            recommendation = "ACCEPT_PENALTY"
+            title = "ACCEPT RERA DELAY PENALTY (CRASHING INFEASIBLE)"
+            net_savings = 0.0
             rationale = (
-                f"Fast-tracking critical activities costs ₹{total_crash_cost:,.2f}, saving "
-                f"₹{net_savings:,.2f} compared to the statutory MahaRERA delay penalty of "
-                f"₹{total_pen:,.2f}. This prevents buyer litigation and maintains RERA compliance."
+                f"Critical path activities have no remaining crash capacity (0 days recoverable). "
+                f"Schedule compression is infeasible; developer must absorb statutory Section 18 penalty of ₹{total_pen:,.2f}."
+            )
+        elif total_crash_cost < avoided_penalty:
+            recommendation = "CRASH_SCHEDULE"
+            title = "CRASH SCHEDULE (RECOMMENDED)" if days_rec >= recovery_target else "PARTIAL CRASH (RECOMMENDED)"
+            net_savings = round(avoided_penalty - total_crash_cost, 2)
+            rationale = (
+                f"Fast-tracking critical activities recovers {days_rec}d at ₹{total_crash_cost:,.2f}, saving "
+                f"₹{net_savings:,.2f} against avoided statutory penalty of ₹{avoided_penalty:,.2f}."
+                + (f" Remaining {recovery_target - days_rec}d incurs ₹{remaining_penalty:,.2f} penalty." if remaining_penalty > 0 else " This restores full RERA schedule compliance.")
             )
         else:
             recommendation = "ACCEPT_PENALTY"
             title = "ACCEPT RERA DELAY PENALTY"
+            net_savings = round(total_crash_cost - avoided_penalty, 2)
             rationale = (
-                f"Crashing the schedule costs ₹{total_crash_cost:,.2f}, which exceeds the "
-                f"calculated MahaRERA statutory penalty of ₹{total_pen:,.2f} by ₹{net_savings:,.2f}. "
+                f"Crashing {days_rec}d costs ₹{total_crash_cost:,.2f}, exceeding the avoidable "
+                f"statutory penalty of ₹{avoided_penalty:,.2f} by ₹{net_savings:,.2f}. "
                 f"It is financially rational to pay interest to allottees rather than expedite."
             )
 

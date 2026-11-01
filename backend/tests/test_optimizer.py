@@ -146,3 +146,61 @@ def test_optimizer_api_endpoint():
     assert "total_rera_penalty" in data
     assert "total_crash_cost" in data
     assert "crashing_actions" in data
+
+
+def test_uncrashable_schedule_recommends_accept_penalty():
+    """
+    Beyonce Rule: When all tasks on critical path are already at minimum crash duration
+    (0 days recovered), optimizer must NOT recommend CRASH_SCHEDULE at 0 cost.
+    It must recommend ACCEPT_PENALTY because crashing is infeasible.
+    """
+    params = RERAPenaltyParams(
+        total_allottee_investment=10000000.0,
+        sbi_mclr_rate=8.85,
+        rera_spread=2.00,
+        delay_days=10,
+    )
+    tasks = [
+        CrashableTaskItem(
+            id="T1",
+            name="Excavation",
+            normal_duration=10,
+            crash_duration=10,
+            normal_cost=100000.0,
+            crash_cost=100000.0,
+            predecessors=[],
+        ),
+    ]
+
+    res = DelayRecoveryOptimizer.evaluate(params, tasks)
+
+    assert res.days_recovered == 0
+    assert res.recommendation == "ACCEPT_PENALTY"
+    assert "INFEASIBLE" in res.recommendation_title
+
+
+def test_zero_delay_days_recommends_no_delay():
+    """Validates that a project with 0 delay days correctly reports NO DELAY DETECTED."""
+    params = RERAPenaltyParams(
+        total_allottee_investment=10000000.0,
+        sbi_mclr_rate=8.85,
+        rera_spread=2.00,
+        delay_days=0,
+    )
+    tasks = [
+        CrashableTaskItem(
+            id="T1",
+            name="Excavation",
+            normal_duration=10,
+            crash_duration=5,
+            normal_cost=100000.0,
+            crash_cost=150000.0,
+            predecessors=[],
+        ),
+    ]
+
+    res = DelayRecoveryOptimizer.evaluate(params, tasks)
+    assert res.days_recovered == 0
+    assert res.total_rera_penalty == 0.0
+    assert res.recommendation == "ACCEPT_PENALTY"
+    assert "NO DELAY DETECTED" in res.recommendation_title

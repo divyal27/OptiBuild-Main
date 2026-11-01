@@ -1,4 +1,12 @@
 import os
+import sys
+from pathlib import Path
+
+# Ensure repository root is on sys.path for direct pytest invocation
+_REPO_ROOT = str(Path(__file__).resolve().parents[2])
+if _REPO_ROOT not in sys.path:
+    sys.path.insert(0, _REPO_ROOT)
+
 # Ensure test JWT_SECRET is set before importing app or config
 if "JWT_SECRET" not in os.environ or len(os.environ.get("JWT_SECRET", "").strip()) < 32:
     os.environ["JWT_SECRET"] = "test-secret-at-least-32-chars-for-optibuild-tests"
