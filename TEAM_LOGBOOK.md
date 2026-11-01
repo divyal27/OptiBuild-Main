@@ -79,7 +79,7 @@ flowchart TD
 
 | Member | Active Branch / AI Agent | Current Task | Status | Target Date |
 |---|---|---|---|---|
-| **Bhushan** | `feat/academic-research-docs` | Push verified, 74 tests green, Next.js 16.4.3, academic docs | 🟢 Complete | Oct 30 |
+| **Bhushan** | `feat/academic-research-docs` | Push verified, 91 tests green, optimizer delay fixes, security & multi-tenancy roadmap | 🟢 Complete | Nov 01 |
 | **Divyal** | `main` | Collaborator setup & Optimization foundation | ✅ Merged | Oct 29 |
 | **Chaitanya** | `main` | OR-Tools CP-SAT baseline solver setup | ✅ Merged | Oct 30 |
 | **Aniket** | `main` | Frontend dashboard & API contract setup | ✅ Merged | Oct 30 |
@@ -98,6 +98,27 @@ flowchart TD
 - **PR / Ticket:** `#PR-Number` or `Jira-Key`
 - **Changes:** What files were created or modified.
 - **Viva Value:** Why this matters for the SPPU viva examiner.
+
+---
+
+### [2026-11-01] Bhushan Bhosale - Full Suite 91 Tests Green, Production Bug Fixes (F04, F06, F08), Optimizer Zero-Delay Guard & Builder Enterprise Security Roadmap
+- **Branch:** `feat/academic-research-docs`
+- **PR / Ticket:** `PR (feat/academic-research-docs)` -> Ready for Merge into `upstream/main`
+- **Completed Changes:**
+  - **91/91 Unit & Integration Tests Green:** Expanded test suite coverage across CPM, GA, Optimizer, Feedback, Materials, and Auth.
+  - **F06 Fix:** Hardened MahaRERA PDF extraction logic for irregular table layouts and application formats (`pdf_parser.py`).
+  - **F08 Fix:** Verified PM user roster and team assignment permissions across role hierarchies (`projects.py`).
+  - **F04 Fix:** Prevented unauthorized project list visibility leaks for non-admin team members (`projects.py`).
+  - **Optimizer Edge-Case Hardening:** Fixed delay recovery crash slope evaluation when recoverable days equal 0 (`days_rec == 0`), ensuring uncrashable schedules correctly recommend `ACCEPT_PENALTY` instead of a bogus ₹0 crashing plan.
+  - **Edge Proxy & Cold-Start Fixes:** Optimized Next.js edge reverse proxy request body handling and quiet health check pinging to prevent cloud platform cold-start timeouts.
+  - **Live Architectural & Security Audit:** Documented complete system baseline in `PROJECT_AUDIT.md`.
+- **Remaining Steps for Commercial Builder Readiness (Next Sprints):**
+  1. **[P0] Strict Multi-Tenancy Scoping:** Add `User.organization_id` foreign key and enforce tenant boundaries on all queries to prevent cross-builder project leakage.
+  2. **[P0] Statutory Audit Trail (`AuditLog`):** Implement immutable logging of MahaRERA possession date, cost slope, and spend recalibration changes for legal liability compliance.
+  3. **[P1] Solver Rate Limiting:** Add `slowapi` rate-limiting to protect CPU-intensive CP-SAT and GA optimization endpoints from exhaustion.
+  4. **[P1] Credential Hardening & MFA:** Remove plaintext demo password fallback, add brute-force lockout, and add TOTP 2FA for Developer/Owner and Project Manager accounts.
+  5. **[P2] Alembic Versioned Migrations:** Initialize Alembic migrations replacing raw `Base.metadata.create_all()` for zero-downtime DB updates.
+- **Viva Value:** Demonstrates industry-grade bug resolution, rigorous test automation (91 tests), production deployment readiness, and statutory compliance under MahaRERA Section 18.
 
 ---
 

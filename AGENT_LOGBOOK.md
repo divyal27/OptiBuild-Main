@@ -108,6 +108,10 @@ Whenever an AI agent detects, investigates, or fixes a bug, lint issue, test fai
 | `TASK-006` | Next.js Gantt & Project Ingestion | `feat/academic-research-docs` | Cursor / Antigravity | Aniket | 🟢 Complete | npm run build (16.4.3) |
 | `TASK-007` | SPPU Academic Research & Docs | `feat/academic-research-docs` | Antigravity | Bhushan | 🟢 Complete | IEEE paper & synopsis |
 | `TASK-008` | Delay Recovery Optimizer & Pytest Fix | `feat/academic-research-docs` | Antigravity 2.0 | Bhushan | 🟢 Complete | Pytest 86/86 green |
+| `TASK-009` | Production Hardening (F04, F06, F08) & Cold-Start Proxy | `feat/academic-research-docs` | Antigravity 2.0 | Bhushan | 🟢 Complete | Pytest 91/91 green |
+| `TASK-010` | Enterprise Multi-Tenant Scoping (`User.org_id`) | `feat/security-hardening` | AI Agent Fleet | Bhushan / Divyal | ⚪ Queued | P0 Security Roadmap |
+| `TASK-011` | Statutory Immutable Audit Trail (`AuditLog`) | `feat/security-hardening` | AI Agent Fleet | Bhushan / Divyal | ⚪ Queued | P0 MahaRERA Compliance |
+| `TASK-012` | Solver Rate Limiting & DoS Protection (slowapi) | `feat/security-hardening` | AI Agent Fleet | Fleet | ⚪ Queued | P1 Resource Protection |
 
 *Status codes: `🟢 Complete` | `🟡 In Progress` | `🔴 Blocked` | `⚪ Queued`*
 
