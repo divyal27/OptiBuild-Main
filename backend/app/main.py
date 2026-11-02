@@ -13,6 +13,8 @@ from backend.app.api.v1.wbs import router as wbs_router
 from backend.app.api.v1.rera_parser import router as rera_router
 from backend.app.api.v1.materials import router as materials_router
 from backend.app.api.v1.dashboard import router as dashboard_router
+from backend.app.api.v1.feedback import router as feedback_router
+from backend.app.api.v1.training import router as training_router
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -43,6 +45,8 @@ app.include_router(wbs_router, prefix=settings.API_V1_STR)
 app.include_router(rera_router, prefix=settings.API_V1_STR)
 app.include_router(materials_router, prefix=settings.API_V1_STR)
 app.include_router(dashboard_router, prefix=settings.API_V1_STR)
+app.include_router(feedback_router, prefix=settings.API_V1_STR)
+app.include_router(training_router, prefix=settings.API_V1_STR)
 
 # Ensure database tables exist automatically on startup
 from backend.app.db.session import engine, Base
@@ -57,7 +61,8 @@ if engine:
         print(f"[Warning] Startup initialization failed: {_e}")
 
 
-
+@app.get("/api/health", tags=["Health"])
+@app.get("/api/v1/health", tags=["Health"])
 @app.get("/health", tags=["Health"])
 def health_check():
     return {
