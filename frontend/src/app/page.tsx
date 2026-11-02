@@ -9,6 +9,7 @@ import { RecoverySidePanel } from "@/components/optimizer/RecoverySidePanel"
 import { EmptyState } from "@/components/ui/EmptyState"
 import { SiteWeatherWidget } from "@/components/weather/SiteWeatherWidget"
 import { GuidedStepper } from "@/components/project/GuidedStepper"
+import { DataConsentCard } from "@/components/project/DataConsentCard"
 import { useAuth, ProjectSummary } from "@/context/AuthContext"
 import { StaggeredGrid, StaggeredGridItem } from "@/components/ui/StaggeredGrid"
 import { SharedTooltipAvatars, TeamMemberAvatar } from "@/components/ui/SharedTooltipAvatars"
@@ -104,7 +105,7 @@ export default function HomePage() {
         setTasks([])
       }
     } catch (err: any) {
-      setError(err.message || "Failed to load project tasks.")
+      setError(err.message || "Failed to load project.")
     } finally {
       setIsLoading(false)
     }
@@ -114,138 +115,115 @@ export default function HomePage() {
     fetchProjectData()
   }, [activeProjectId, token])
 
-  const handleRunOptimizer = async () => {
+  // Active project helper
+  const effectiveActiveProject = useMemo(() => {
+    if (activeProject) return activeProject
+    if (activeProjectId && projects.length > 0) {
+      return projects.find((p) => p.id === activeProjectId) || null
+    }
+    return projects[0] || null
+  }, [activeProject, activeProjectId, projects])
+
+  // Portfolio KPIs
+  const portfolioKPIs = useMemo(() => {
+    const totalProjects = projects.length
+    const delayedProjects = projects.filter((p) => Number(p.delay_days || 0) > 0).length
+    const totalCapital = projects.reduce((acc, p) => acc + (p.total_project_cost || 0), 0)
+    const maxDelay = Math.max(...projects.map((p) => Number(p.delay_days || 0)), 0)
+    return { totalProjects, delayedProjects, totalCapital, maxDelay }
+  }, [projects])
+
+  // Project progress percentage helper
+  const getProjectProgress = (proj: ProjectSummary): number => {
+    if (proj.status === "COMPLETED") return 100
+    if (!proj.has_wbs) return 5
+    if (!proj.has_schedule) return 35
+    if (!proj.has_optimizer) return 65
+    return 80
+  }
+
+  // Project team avatars helper
+  const getProjectTeam = (proj: ProjectSummary): TeamMemberAvatar[] => {
+    const count = (proj as any).members_count || 1
+    const roles = ["PM", "Engineer", "Architect", "Store", "Accountant"]
+    return Array.from({ length: Math.min(count, 5) }).map((_, i) => ({
+      name: `Member ${i + 1}`,
+      role: roles[i % roles.length],
+    }))
+  }
+
+  // Schedule task duration update
+  const handleTaskChange = (updatedTask: ScheduleTask) => {
+    setTasks((prev) =>
+      prev.map((t) => (t.id === updatedTask.id ? updatedTask : t))
+    )
+  }
+
+  // Quick task progress update handler
+  const handleUpdateTaskProgress = async (taskId: string, newPercent: number) => {
     if (!activeProjectId || !token) return
+    const newStatus = newPercent === 100 ? "COMPLETED" : newPercent > 0 ? "IN_PROGRESS" : "NOT_STARTED"
+
+    try {
+      const res = await fetch(getApiUrl(`/api/v1/projects/${activeProjectId}/tasks/${taskId}/progress`), {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          progress_percent: newPercent,
+          status: newStatus,
+        }),
+      })
+
+      if (!res.ok) {
+        throw new Error("Failed to update progress.")
+      }
+
+      setDbTasks((prev) =>
+        prev.map((t) => (t.id === taskId ? { ...t, progress_percent: newPercent, status: newStatus } : t))
+      )
+    } catch (err: any) {
+      setError(err.message || "Failed to update task progress.")
+    }
+  }
+
+  // Run Delay Recovery Optimizer & Save
+  const handleRunOptimizer = async () => {
+    if (!effectiveActiveProject || !token) return
     setIsOptimizing(true)
     setError(null)
+    setSaveSuccessMsg(null)
+
     try {
-      const res = await fetch(getApiUrl(`/api/v1/projects/${activeProjectId}/schedule`), {
+      const res = await fetch(getApiUrl(`/api/v1/projects/${effectiveActiveProject.id}/optimizer`), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          resource_limits: { labor: 32, crane: 1 },
-          ga_population_size: 40,
-          ga_generations: 80,
+          delay_days: effectiveActiveProject.delay_days || 14,
+          target_recovery_days: effectiveActiveProject.delay_days || 14,
         }),
       })
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}))
-        throw new Error(errData.detail || "Optimization failed.")
+        throw new Error(errData.detail || "Failed to run Delay Optimizer.")
       }
 
-      const data = await res.json()
-      if (data.ga && data.ga.schedule) {
-        setTasks(data.ga.schedule)
-      }
-      await fetchProjectData()
+      const result = await res.json()
+      setOptimizerData(result.optimizer_data || result)
+      setSaveSuccessMsg("Optimizer run saved! View trade-off recommendation below.")
+      await refreshProjects()
     } catch (err: any) {
-      setError(err.message || "Schedule optimization failed.")
+      setError(err.message || "Failed to run optimizer.")
     } finally {
       setIsOptimizing(false)
     }
   }
-
-  const handleUpdateTaskProgress = async (taskId: string, newProgress: number) => {
-    if (!activeProjectId || !token) return
-    try {
-      const res = await fetch(
-        getApiUrl(`/api/v1/projects/${activeProjectId}/tasks/${taskId}/progress`),
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            progress_percent: newProgress,
-            status: newProgress === 100 ? "COMPLETED" : newProgress > 0 ? "IN_PROGRESS" : "NOT_STARTED",
-          }),
-        }
-      )
-
-      if (res.ok) {
-        setDbTasks((prev) =>
-          prev.map((t) =>
-            t.id === taskId
-              ? {
-                  ...t,
-                  progress_percent: newProgress,
-                  status: newProgress === 100 ? "COMPLETED" : newProgress > 0 ? "IN_PROGRESS" : "NOT_STARTED",
-                }
-              : t
-          )
-        )
-        setSaveSuccessMsg(`Progress updated for activity ${taskId}`)
-        setTimeout(() => setSaveSuccessMsg(null), 3000)
-      }
-    } catch (err) {
-      console.error("Failed to update progress:", err)
-    }
-  }
-
-  // Derive assigned team members for project cards
-  const getProjectTeam = (proj: ProjectSummary): TeamMemberAvatar[] => {
-    if ((proj as any).members && Array.isArray((proj as any).members) && (proj as any).members.length > 0) {
-      return (proj as any).members.map((m: any) => ({
-        id: m.id || m.user_id || m.email,
-        name: m.full_name || m.name || m.email,
-        role: m.role || "site_engineer",
-      }))
-    }
-    // Realistic site office engineering roster
-    return [
-      { id: `pm-${proj.id}`, name: "Priya Sharma", role: "project_manager", roleTitle: "Project Manager" },
-      { id: `eng-${proj.id}`, name: "Amit Kumar", role: "site_engineer", roleTitle: "Site Engineer" },
-      { id: `arc-${proj.id}`, name: "R. Verma", role: "architect", roleTitle: "Lead Architect" },
-      { id: `acc-${proj.id}`, name: "Sunil Joshi", role: "accountant", roleTitle: "Cost Accountant" },
-    ]
-  }
-
-  // Derive estimated completion percentage for a project
-  const getProjectProgress = (proj: ProjectSummary): number => {
-    if (proj.id === activeProjectId && dbTasks.length > 0) {
-      const completed = dbTasks.filter((t) => t.progress_percent === 100 || t.status === "COMPLETED").length
-      return Math.round((completed / dbTasks.length) * 100)
-    }
-    if (proj.has_schedule && proj.has_optimizer) return 65
-    if (proj.has_wbs) return 35
-    return 10
-  }
-
-  // Portfolio KPIs
-  const portfolioKPIs = useMemo(() => {
-    const totalProjects = projects.length
-    const delayedProjects = projects.filter((p) => Number(p.delay_days || 0) > 0).length
-    const maxDelay = Math.max(...projects.map((p) => Number(p.delay_days || 0)), 0)
-    const totalCapital = projects.reduce(
-      (sum, p) => sum + (Number(p.total_project_cost) || 145000000),
-      0
-    )
-    return { totalProjects, delayedProjects, maxDelay, totalCapital }
-  }, [projects])
-
-  if (projects.length === 0) {
-    return (
-      <div className="flex flex-col min-h-screen bg-background">
-        <TopBar projectName="Projects Overview" />
-        <main className="p-6">
-          <EmptyState
-            title="Upload a MahaRERA PDF to create your first project"
-            description="Upload an official MahaRERA project certificate to automatically extract project timeline, built-up area, and statutory handover commitments."
-            actionLabel="Upload MahaRERA PDF"
-            actionHref="/rera-review"
-          />
-        </main>
-      </div>
-    )
-  }
-
-  const effectiveActiveProject =
-    activeProject || projects.find((p) => p.id === activeProjectId) || projects[0]
 
   const criticalTasksCount = tasks.filter((t) => t.is_critical).length
   const totalMakespan = Math.max(...tasks.map((t) => t.finish_day), 0)
@@ -318,14 +296,14 @@ export default function HomePage() {
               </span>
             </div>
             <div className="mt-1 text-[10px] font-mono text-muted-foreground">
-              Portfolio Sanctioned Value
+              Escrow & Construction Pool
             </div>
           </div>
 
           <div className="border border-border bg-card p-3 rounded-[4px] shadow-2xs">
             <div className="flex items-center justify-between text-muted-foreground">
               <span className="text-[10px] font-mono uppercase tracking-wider">
-                Active Focus Site
+                Selected Project
               </span>
               <HardHat className="w-3.5 h-3.5 text-primary" />
             </div>
@@ -378,118 +356,70 @@ export default function HomePage() {
                       {/* Card Header */}
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
-                          <h3 className="font-heading font-bold text-sm text-foreground line-clamp-1">
+                          <h3 className="font-heading font-bold text-sm text-foreground truncate">
                             {proj.name}
                           </h3>
-                          <p className="text-[11px] font-mono text-muted-foreground mt-0.5 truncate">
-                            RERA: {proj.rera_registration_no || "Registration Pending"}
-                          </p>
+                          <div className="flex items-center gap-2 mt-0.5 text-[10px] font-mono text-muted-foreground">
+                            <span>{proj.rera_registration_no || "RERA Pending"}</span>
+                            <span>•</span>
+                            <span>{proj.status}</span>
+                          </div>
                         </div>
                         {isSelected && (
-                          <span className="shrink-0 px-2 py-0.5 bg-primary/10 text-primary border border-primary/30 text-[10px] font-mono font-bold uppercase rounded-[2px]">
+                          <span className="shrink-0 px-1.5 py-0.5 bg-primary/20 text-primary border border-primary/30 text-[9px] font-mono uppercase tracking-wider rounded-[2px]">
                             ACTIVE
                           </span>
                         )}
                       </div>
 
-                      {/* Schedule & Handover Exposure Meta */}
-                      <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] font-mono">
-                        <div className="bg-muted/40 p-2 border border-border/50 rounded-[2px]">
-                          <span className="text-muted-foreground block text-[10px]">Target Date:</span>
-                          <span className="font-semibold text-foreground truncate block">
-                            {proj.proposed_completion_date || "Not Set"}
-                          </span>
-                        </div>
-                        <div className="bg-muted/40 p-2 border border-border/50 rounded-[2px]">
-                          <span className="text-muted-foreground block text-[10px]">Delay Exposure:</span>
-                          <span
-                            className={`font-semibold ${
-                              isDelayed ? "text-status-warning" : "text-status-success"
-                            }`}
-                          >
-                            +{proj.delay_days || 0} days
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Status Badges for WBS / Schedule / Optimizer */}
-                      <div className="mt-3 flex flex-wrap gap-1.5">
-                        <span
-                          className={`text-[10px] font-mono px-1.5 py-0.5 border rounded-[2px] ${
-                            proj.has_wbs
-                              ? "bg-status-success/15 text-status-success border-status-success/30 font-medium"
-                              : "bg-muted text-muted-foreground border-border"
-                          }`}
-                        >
-                          WBS: {proj.has_wbs ? "Done" : "Pending"}
-                        </span>
-
-                        <span
-                          className={`text-[10px] font-mono px-1.5 py-0.5 border rounded-[2px] ${
-                            proj.has_schedule
-                              ? "bg-status-success/15 text-status-success border-status-success/30 font-medium"
-                              : "bg-muted text-muted-foreground border-border"
-                          }`}
-                        >
-                          Schedule: {proj.has_schedule ? "Done" : "Pending"}
-                        </span>
-
-                        <span
-                          className={`text-[10px] font-mono px-1.5 py-0.5 border rounded-[2px] ${
-                            proj.has_optimizer
-                              ? "bg-status-success/15 text-status-success border-status-success/30 font-medium"
-                              : "bg-muted text-muted-foreground border-border"
-                          }`}
-                        >
-                          Optimizer: {proj.has_optimizer ? "Done" : "Pending"}
-                        </span>
-                      </div>
-
-                      {/* Progress Indicator */}
-                      <div className="mt-3.5 space-y-1">
-                        <div className="flex items-center justify-between text-[10px] font-mono">
-                          <span className="text-muted-foreground">Execution Progress</span>
-                          <span className="font-semibold text-foreground">{completionPercent}%</span>
+                      {/* Progress Bar */}
+                      <div className="mt-3 space-y-1">
+                        <div className="flex justify-between text-[10px] font-mono">
+                          <span className="text-muted-foreground">Milestone Progress</span>
+                          <span className="text-foreground font-semibold">{completionPercent}%</span>
                         </div>
                         <Progress value={completionPercent} className="h-1.5" />
                       </div>
 
-                      {/* Team Avatars with Shared Tooltips */}
-                      <div className="mt-3.5 pt-3 border-t border-border/60 flex items-center justify-between">
-                        <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">
-                          Site Team:
-                        </span>
-                        <SharedTooltipAvatars members={teamMembers} size="sm" />
+                      {/* Metrics Strip */}
+                      <div className="mt-3 grid grid-cols-2 gap-2 text-xs font-mono py-2 border-y border-border/60">
+                        <div>
+                          <div className="text-[10px] text-muted-foreground uppercase">Budget</div>
+                          <div className="font-bold text-foreground">
+                            <Counter value={proj.total_project_cost || 0} isCurrency compact />
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-[10px] text-muted-foreground uppercase">Delay Status</div>
+                          <div className={isDelayed ? "font-bold text-status-warning" : "text-status-success font-semibold"}>
+                            {isDelayed ? `+${proj.delay_days}d behind` : "On Schedule"}
+                          </div>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Card Actions Footer */}
-                    <div className="mt-4 pt-3 border-t border-border flex items-center justify-between gap-2">
-                      {isSelected ? (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-mono text-primary font-semibold">
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          Active Project
-                        </span>
-                      ) : (
-                        <button
-                          type="button"
+                    {/* Card Footer */}
+                    <div className="mt-4 pt-2 flex items-center justify-between">
+                      <SharedTooltipAvatars members={teamMembers} maxDisplay={4} size="sm" />
+                      <div className="flex items-center gap-1.5">
+                        {!isSelected && (
+                          <button
+                            type="button"
+                            onClick={() => setActiveProjectId(proj.id)}
+                            className="px-2 py-1 text-[11px] font-mono border border-border bg-background hover:bg-muted text-foreground transition-colors rounded-[2px]"
+                          >
+                            Select
+                          </button>
+                        )}
+                        <Link
+                          href="/wbs"
                           onClick={() => setActiveProjectId(proj.id)}
-                          className="px-3 py-1 bg-secondary text-foreground text-xs font-mono font-medium border border-border hover:bg-muted transition-colors rounded-[2px]"
+                          className="px-2 py-1 text-[11px] font-mono bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-1 rounded-[2px]"
                         >
-                          Make Active
-                        </button>
-                      )}
-
-                      <Link
-                        href="/wbs"
-                        onClick={() => {
-                          if (!isSelected) setActiveProjectId(proj.id)
-                        }}
-                        className="text-xs font-mono text-muted-foreground hover:text-foreground flex items-center gap-1 group"
-                      >
-                        <span>Work Breakdown</span>
-                        <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-                      </Link>
+                          <span>Gantt</span>
+                          <ArrowRight className="w-3 h-3" />
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 </StaggeredGridItem>
@@ -525,6 +455,14 @@ export default function HomePage() {
           />
         )}
 
+        {/* DPDP Act 2023 Consent & Algorithmic Telemetry Gate */}
+        {effectiveActiveProject && (
+          <DataConsentCard
+            projectId={effectiveActiveProject.id}
+            projectName={effectiveActiveProject.name}
+          />
+        )}
+
         {isLoading ? (
           <div className="p-12 text-center text-xs font-mono text-muted-foreground flex items-center justify-center gap-2 border border-border bg-card rounded-[4px]">
             <Loader2 className="w-4 h-4 animate-spin text-primary" />
@@ -539,143 +477,115 @@ export default function HomePage() {
           />
         ) : (
           <>
-            {/* Site Meteorology & Rain Delay Guard Widget */}
-            <SiteWeatherWidget tasks={tasks} projectCity="Pune" />
+            {/* Critical Path & Hero Timeline Section */}
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border pb-3">
+                <div>
+                  <h2 className="font-heading font-semibold text-sm uppercase tracking-wider text-foreground flex items-center gap-2">
+                    <Activity className="w-4 h-4 text-primary" />
+                    <span>HERO SCHEDULE & RESOURCE TIMELINE ({effectiveActiveProject?.name})</span>
+                  </h2>
+                  <p className="text-xs text-muted-foreground font-sans mt-0.5">
+                    CPM critical path highlighted in safety orange. Resource constrained under 32 laborers and 1 tower crane limit.
+                  </p>
+                </div>
 
-            {/* Metric Ribbons */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="border border-border bg-card p-3 rounded-[4px]">
-                <div className="flex items-center justify-between text-muted-foreground">
-                  <span className="text-[10px] font-mono uppercase tracking-wider">
-                    Makespan (Days)
-                  </span>
-                  <Calendar className="w-3.5 h-3.5 text-primary" />
-                </div>
-                <div className="mt-1 flex items-baseline gap-1.5">
-                  <span className="text-2xl font-mono font-bold text-foreground">
-                    <Counter value={totalMakespan} />
-                  </span>
-                  <span className="text-xs font-mono text-muted-foreground">days</span>
-                </div>
-                <div className="mt-1 text-[10px] font-mono text-muted-foreground">
-                  Target Handover: {activeProject?.proposed_completion_date || "Active"}
-                </div>
-              </div>
-
-              <div className="border border-border bg-card p-3 rounded-[4px]">
-                <div className="flex items-center justify-between text-muted-foreground">
-                  <span className="text-[10px] font-mono uppercase tracking-wider">
-                    Delay Risk
-                  </span>
-                  <AlertTriangle className="w-3.5 h-3.5 text-status-warning" />
-                </div>
-                <div className="mt-1 flex items-baseline gap-1.5">
-                  <span className="text-2xl font-mono font-bold text-status-warning">
-                    +<Counter value={delayRiskDays} />
-                  </span>
-                  <span className="text-xs font-mono text-muted-foreground">days</span>
-                </div>
-                <div className="mt-1 text-[10px] font-mono text-muted-foreground">
-                  MahaRERA Exposure: {activeProject?.delay_days ? "Contractual Risk" : "Stable"}
-                </div>
-              </div>
-
-              <div className="border border-border bg-card p-3 rounded-[4px]">
-                <div className="flex items-center justify-between text-muted-foreground">
-                  <span className="text-[10px] font-mono uppercase tracking-wider">
-                    Critical Path
-                  </span>
-                  <Activity className="w-3.5 h-3.5 text-primary" />
-                </div>
-                <div className="mt-1 flex items-baseline gap-1.5">
-                  <span className="text-2xl font-mono font-bold text-primary">
-                    <Counter value={criticalTasksCount} />
-                  </span>
-                  <span className="text-xs font-mono text-muted-foreground">
-                    of {tasks.length} tasks
-                  </span>
-                </div>
-                <div className="mt-1 text-[10px] font-mono text-muted-foreground">
-                  Zero float activities
-                </div>
-              </div>
-
-              <div className="border border-border bg-card p-3 rounded-[4px]">
-                <div className="flex items-center justify-between text-muted-foreground">
-                  <span className="text-[10px] font-mono uppercase tracking-wider">
-                    Resource Constraints
-                  </span>
-                  <Users className="w-3.5 h-3.5 text-foreground" />
-                </div>
-                <div className="mt-1 flex items-baseline gap-1.5">
-                  <span className="text-2xl font-mono font-bold text-foreground">32</span>
-                  <span className="text-xs font-mono text-muted-foreground">labor / 1 crane</span>
-                </div>
-                <div className="mt-1 text-[10px] font-mono text-muted-foreground">
-                  RCPSP Genetic Algorithm Mode
-                </div>
-              </div>
-            </div>
-
-            {/* Gantt Chart & Recovery Side Panel */}
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
-              <div className="lg:col-span-3 border border-border bg-card p-4 space-y-4 rounded-[4px]">
-                <div className="flex items-center justify-between border-b border-border pb-3">
-                  <div>
-                    <h2 className="font-heading font-semibold text-sm text-foreground">
-                      Construction Activity Gantt Timeline
-                    </h2>
-                    <p className="text-[11px] font-mono text-muted-foreground">
-                      Critical path activities marked in solid red • Dynamic serial schedule generation
-                    </p>
-                  </div>
+                <div className="flex items-center gap-2">
                   {canRunSchedule && (
                     <button
                       type="button"
                       disabled={isOptimizing}
                       onClick={handleRunOptimizer}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground font-mono text-xs font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 rounded-[2px]"
+                      className="px-3 py-1 bg-primary text-primary-foreground font-mono text-xs font-medium hover:bg-primary/90 transition-colors flex items-center gap-1.5 border border-primary rounded-[2px]"
                     >
-                      <RefreshCw className={`w-3.5 h-3.5 ${isOptimizing ? "animate-spin" : ""}`} />
-                      <span>{isOptimizing ? "SOLVING GA..." : "RUN RCPSP GA SOLVER"}</span>
+                      {isOptimizing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sliders className="w-3.5 h-3.5" />}
+                      <span>{isOptimizing ? "Running..." : "Evaluate Recovery"}</span>
                     </button>
                   )}
+                  <Link
+                    href="/wbs"
+                    className="px-3 py-1 border border-border bg-card hover:bg-muted text-foreground font-mono text-xs transition-colors rounded-[2px]"
+                  >
+                    Edit WBS
+                  </Link>
                 </div>
-
-                <GanttSchedule tasks={tasks} />
               </div>
 
-              {/* Side Panel */}
-              <div className="lg:col-span-1">
-                <RecoverySidePanel
-                  delayDays={optimizerData?.delay_days ?? activeProject?.delay_days ?? 14}
-                  penaltyCost={optimizerData?.total_rera_penalty ?? 485000}
-                  crashCost={optimizerData?.total_crash_cost ?? 210000}
-                  crashedDaysRecovered={optimizerData?.days_recovered ?? 14}
+              {/* Weather Risk Widget */}
+              <SiteWeatherWidget
+                cityName="Pune Construction Hub"
+                latitude={18.5204}
+                longitude={73.8567}
+                activeTasks={tasks.slice(0, 5).map((t) => ({
+                  id: t.id,
+                  name: t.name,
+                  duration: t.duration,
+                  is_critical: t.is_critical,
+                }))}
+              />
+
+              {/* Gantt Chart Workstation */}
+              <div className="border border-border bg-card p-4 rounded-[4px] shadow-2xs">
+                <GanttSchedule
+                  tasks={tasks}
+                  onTaskChange={canRunSchedule ? handleTaskChange : undefined}
                 />
               </div>
             </div>
 
-            {/* Site Engineer Progress Tracking Table */}
-            <div className="border border-border bg-card p-4 space-y-3 rounded-[4px]">
-              <div className="flex items-center justify-between border-b border-border pb-2">
+            {/* Delay Recovery Optimizer Decision Section */}
+            {optimizerData && (
+              <section aria-label="Delay Recovery Decision" className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="font-heading font-semibold text-xs uppercase tracking-wider text-foreground flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-status-warning" />
+                      <span>MAHARERA STATUTORY DELAY RECOVERY DECISION</span>
+                    </h2>
+                    <p className="text-xs text-muted-foreground font-sans mt-0.5">
+                      Comparing Section 18 statutory buyer interest liability vs greedy critical path schedule compression.
+                    </p>
+                  </div>
+                  <Link
+                    href="/optimizer"
+                    className="text-xs font-mono text-primary hover:underline flex items-center gap-1"
+                  >
+                    <span>Full Recovery Panel</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </Link>
+                </div>
+
+                <RecoverySidePanel
+                  optimizerResult={optimizerData}
+                  onApplyStrategy={(recommendation) => {
+                    setSaveSuccessMsg(`Applied recovery strategy: ${recommendation}`)
+                  }}
+                />
+              </section>
+            )}
+
+            {/* Granular Task Execution Roster */}
+            <div className="border border-border bg-card p-4 rounded-[4px] space-y-3">
+              <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-heading font-semibold text-xs text-foreground flex items-center gap-1.5">
-                    <Sliders className="w-3.5 h-3.5 text-primary" />
-                    <span>Site Activity Progress Tracking & Verification</span>
+                  <h3 className="font-heading font-semibold text-xs uppercase tracking-wider text-foreground">
+                    PROJECT TASKS & SITE PROGRESS ROSTER
                   </h3>
-                  <p className="text-[11px] font-mono text-muted-foreground">
-                    Site Engineers can update actual completion percentages directly from site inspections.
+                  <p className="text-xs text-muted-foreground font-sans">
+                    Live task execution statuses and critical float indicators.
                   </p>
                 </div>
+                <span className="text-xs font-mono text-muted-foreground">
+                  {dbTasks.length} tasks registered
+                </span>
               </div>
 
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs font-mono">
-                  <thead className="bg-muted/40 text-[10px] uppercase text-muted-foreground border-y border-border">
-                    <tr>
-                      <th className="py-2 px-3">Activity ID</th>
-                      <th className="py-2 px-3">Task Name</th>
+                <table className="w-full text-left font-mono text-xs border-collapse">
+                  <thead>
+                    <tr className="border-b border-border text-muted-foreground bg-muted/40">
+                      <th className="py-2 px-3">Task ID</th>
+                      <th className="py-2 px-3">Activity Title</th>
                       <th className="py-2 px-3">Duration</th>
                       <th className="py-2 px-3">Status</th>
                       <th className="py-2 px-3">Completion (%)</th>
